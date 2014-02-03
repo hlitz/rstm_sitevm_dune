@@ -79,7 +79,7 @@ DList::DList()// : head(new Node(-1)), tail(new Node(INT_MAX))
 {
   head = (Node*)hcmalloc(sizeof(Node));
   tail = (Node*)hcmalloc(sizeof(Node));
-  //std::cout << "alloc " << sentinel << std::endl;
+  //std::cout << "alloced head and tail " << std::endl;
   new (head) Node(-1);
   new (tail) Node(INT_MAX);
 
@@ -160,6 +160,7 @@ bool DList::insert(int val TM_ARG){
         Node* after = const_cast<Node*>(curr);
 
         // create the node
+	//std::cout << " Insert - alloc a node " << std::endl;
         Node* between = (Node*)TM_ALLOC(sizeof(Node));
         between->m_val = val;
         between->m_prev = before;
@@ -217,7 +218,7 @@ bool DList::remove(int val TM_ARG){
         }
 
         prev = curr;
-        curr = TM_READ(prev->m_next);
+        curr = TM_READ_PROMO(prev->m_next);
     }
     return false;
 }

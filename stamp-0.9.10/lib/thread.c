@@ -73,7 +73,7 @@
 #include <stdlib.h>
 #include "thread.h"
 #include "types.h"
-#include "stm/lib_hicamp.h"
+//#include "stm/lib_hicamp.h"
 
 static THREAD_LOCAL_T    global_threadId;
 static long              global_numThread       = 1;

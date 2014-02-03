@@ -22,7 +22,7 @@
 #include "stm/UndoLog.hpp"
 #include "stm/ValueList.hpp"
 #include "policies/policies.hpp"
-#include "stm/lib_hicamp.h"
+//#include "stm/lib_hicamp.h"
 
 namespace
 {

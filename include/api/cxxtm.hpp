@@ -19,7 +19,7 @@
 
 #ifndef STM_API_CXXTM_HPP
 #define STM_API_CXXTM_HPP
-#include "stm/lib_hicamp"
+#include "stm/lib_sitevm.h"
 
 // The prototype icc stm compiler version 4.0 doesn't understand transactional
 // malloc and free without some help. The ifdef guard could be more intelligent.

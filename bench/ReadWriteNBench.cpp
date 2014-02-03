@@ -54,7 +54,7 @@ void bench_init()
 }
 
 /*** Run a bunch of random transactions */
-void bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t, uint32_t* seed)
 {
     // cache the seed locally so we can restore it on abort
     //
@@ -75,6 +75,7 @@ void bench_test(uintptr_t, uint32_t* seed)
         }
     } TM_END;
     *seed = local_seed;
+    return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

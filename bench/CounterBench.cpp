@@ -57,24 +57,33 @@ void
 bench_init()
 {
   counter = (int*)hcmalloc(sizeof(int)*4);
+  //std::cout<< std::hex << std::endl;//"counter sits at "/* << (uint64_t)counter*/ <<std::endl;
+  TM_BEGIN(atomic){
+    TM_WRITE(*counter, 0);
+  }TM_END;
 }
 
+int ops;
 /*** Run a bunch of increment transactions */
-void
+int
 bench_test(uintptr_t, uint32_t*)
 {
     TM_BEGIN(atomic) {
         // increment the counter
         TM_WRITE(*counter, 1 + TM_READ(*counter));
     } TM_END;
+    ops++;
+    return ops;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */
 bool
 bench_verify()
 {
+    TM_BEGIN(atomic) {
     std::cout << "(final value = " << *counter << ") ";
     return (*counter > 0);
+    }TM_END;
 }
 
 /**

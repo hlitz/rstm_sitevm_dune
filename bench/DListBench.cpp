@@ -55,9 +55,10 @@ int startelems = 0;
 /*** Initialize the counter */
 void bench_init()
 {
+  TM_BEGIN(atomic){
   SET = (DList*)hcmalloc(sizeof(DList));
   new (SET) DList();
-
+  //std::cout << "malloced list " << std::endl;
   //    SET = new DList();
     // warm up the datastructure
   /*   TM_BEGIN_FAST_INITIALIZATION();
@@ -68,11 +69,11 @@ void bench_init()
   for(int i=0;i<32;i++){
     elems[i] = 0;
   }
-
+  }TM_END;
 }
 
 /*** Run a bunch of increment transactions */
-void bench_test(uintptr_t id, uint32_t* seed)
+int bench_test(uintptr_t id, uint32_t* seed)
 {
     uint32_t val = rand_r(seed) % CFG.elements;
     uint32_t act = rand_r(seed) % 100;
@@ -100,6 +101,7 @@ void bench_test(uintptr_t id, uint32_t* seed)
 	  elems[id]--;
 	}
     }
+    return elems[id];
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */
@@ -107,9 +109,9 @@ bool bench_verify() {
   int sum = 0;
   for(int i=0; i<16; i++){
     sum += elems[i];
-    std::cout << "tid " << i << " : " << elems[i] << std::endl; 
+    //std::cout << "tid " << i << " : " << elems[i] << std::endl; 
   }
-  std::cout << "sum " << sum << " sum + startelems " << sum+startelems << std::endl;
+  std::cout << "---------------sum " << sum << " sum + startelems " << sum+startelems << std::endl;
 
 return SET->isSane(); }
 

@@ -42,6 +42,25 @@
 #include "List.hpp"
 #include <time.h>
 
+#define XBEGIN asm(" movl $1028, %ecx\n\t"  "xchg %rcx, %rcx")
+#define XEND asm(" movl $1029, %ecx\n\t"  "xchg %rcx, %rcx")
+
+uint64_t lsum[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint64_t rsum [32]= {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint64_t isum[32] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+inline uint64_t rdtsc()
+{
+    uint32_t lo, hi;
+    __asm__ __volatile__ (
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "rdtsc\n"
+      : "=a" (lo), "=d" (hi)
+      :
+      : "%ebx", "%ecx" );
+    return (uint64_t)hi << 32 | lo;
+}
 
 
 /**
@@ -53,6 +72,8 @@
 /*** the list we will manipulate in the experiment */
 List* SET;
 int elems [32];
+int ielems [32];
+int relems [32];
 int startelems = 0;
 
 /*** Initialize the counter */
@@ -63,59 +84,81 @@ void bench_init()
   new (SET) List();
   for(int i=0;i<32;i++){
     elems[i] = 0;
+    ielems[i] = 0;
+    relems[i] = 0;
   }
 
-// warm up the datastructure
-    //
-    // NB: if we switch to CGL, we can initialize without transactions
-  /*  TM_BEGIN(atomic){//_FAST_INITIALIZATION();
+  // warm up the datastructure
+  //
+  // NB: if we switch to CGL, we can initialize without transactions
+  TM_BEGIN(atomic){//_FAST_INITIALIZATION();
     for (uint32_t w = 0; w < CFG.elements; w+=2){
-            startelems++;
+      startelems++;
       //if(w%100==0)std::cout << "insert el" << w <<" "<< CFG.elements << std::endl;
       SET->insert(w TM_PARAM);
     }
-  }
-  TM_END;//_FAST_INITIALIZATION();*/
-    std::cout << "start elems  " << startelems << std::endl;
+  }TM_END;//_FAST_INITIALIZATION();
+  std::cout << "start elems  " << startelems << std::endl;
+  
 }
-
+  
 /*** Run a bunch of increment transactions */
-void bench_test(uintptr_t id, uint32_t* seed)
+int bench_test(uintptr_t id, uint32_t* seed)
 {
   // std::cout << "id " << id << " " <<(uint64_t)(*id) << std::endl;
   //TM_BEGIN(atomic){
-    for(int o=0; o<CFG.ops; o++){
+  long tid = id;
+
+    for(uint o=0; o<CFG.ops; o++){
       uint32_t val = rand_r(seed) % CFG.elements;
       uint32_t act = rand_r(seed) % 100;
+      //printf("insp %i\n", CFG.inspct);
       bool res = false;
       if (act < CFG.lookpct) {
+	uint64_t begin = rdtsc();
 	TM_BEGIN(atomic) {
 	  //	val = 2000;
-	  //SET->lookup(val TM_PARAM);
+	  //SET->lookup(val /*TM_PARAM*/);
 	//val = 1999;
 	SET->lookup(val TM_PARAM);
 	} TM_END;
+	lsum[tid] += (rdtsc()-begin);
+
       }
       else if (act < CFG.inspct) {
 	//bool res = false;
+	uint64_t begin = rdtsc();
 	TM_BEGIN(atomic) {
-	res = SET->insert(val TM_PARAM);
+	  res = SET->insert(val TM_PARAM);
 	} TM_END;
+	isum[tid] += (rdtsc()-begin);
+
 	if(res){
 	  //std::cout << "insert el " << val << std::endl; 
 	  elems[id]++;
+	  ielems[id]++;
+	  *seed = 66;
+	  return 1;
 	}
       }
       else {
 	//bool res =false;
+	uint64_t begin = rdtsc();
 	TM_BEGIN(atomic) {
 	res = SET->remove(val TM_PARAM);
 	} TM_END;
-	if(res){//std::cout << "remove el " << val << std::endl; 
+	rsum[tid] += (rdtsc()-begin);
+
+	if(res){
+	  //std::cout << "remove el " << val << std::endl; 
 	  elems[id]--;
+	  relems[id]++;
+	  *seed = 77;
+	  return -1;
 	}
       }
     }
+    return 0;
     //}
 //TM_END;
 }
@@ -123,12 +166,25 @@ void bench_test(uintptr_t id, uint32_t* seed)
 /*** Ensure the final state of the benchmark satisfies all invariants */
 bool bench_verify() { 
   int sum = 0;
+  int srelems = 0;
+  int sielems = 0;
   for(int i=0; i<16; i++){
     sum += elems[i];
-    std::cout << "tid " << i << " : " << elems[i] << std::endl; 
+    srelems += relems[i];
+    sielems += ielems[i];
+    //std::cout << "tid " << i << " : " << elems[i] << std::endl; 
   }
-  std::cout << "sum " << sum << " sum + startelems " << sum+startelems << std::endl;
-return SET->isSane(); }
+  //std::cout << "relems " << srelems << " ielems " << sielems << std::endl;
+  //std::cout << "sum " << sum << " sum + startelems " << sum+startelems << std::endl;
+  for(int t=0; t<8; t++){
+    //std::cout << "Thread "<<t<< " lookup time: " << lsum[t] << " insert " << isum[t] << " remove " << rsum[t] << std::endl;
+  }
+  bool ret = false;
+  TM_BEGIN(atomic){
+    ret = SET->isSane();
+  } TM_END; 
+  return ret;
+}
 
 /**
  *  Step 4:

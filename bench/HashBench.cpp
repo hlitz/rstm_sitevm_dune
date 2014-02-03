@@ -70,7 +70,7 @@ void bench_init()
 }
 uint64_t ctr =0;
 /*** Run a bunch of increment transactions */
-void bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t, uint32_t* seed)
 {
   //   for(uint32_t o=0; o<1/*CFG.ops*/; o++){
   //std::cout << "seed " << *seed << std::endl;
@@ -123,6 +123,7 @@ void bench_test(uintptr_t, uint32_t* seed)
        }TM_END;
      }
      //   }
+  return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

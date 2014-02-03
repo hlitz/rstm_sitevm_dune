@@ -71,7 +71,7 @@
  */
 
 //#include "instrument_roi.h"
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 #ifndef TM_H
 #define TM_H 1

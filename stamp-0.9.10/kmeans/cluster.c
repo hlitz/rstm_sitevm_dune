@@ -101,7 +101,7 @@
 #include "random.h"
 #include "util.h"
 #include "tm.h"
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 
 /* =============================================================================

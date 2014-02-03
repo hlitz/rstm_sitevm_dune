@@ -1,4 +1,4 @@
-/**
+;/**
  *  Copyright (C) 2011
  *  University of Rochester Department of Computer Science
  *    and
@@ -68,7 +68,7 @@ void bench_init()
 const uint32_t ACCESS = 10;
 
 /*** Run a bunch of increment transactions */
-void bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t, uint32_t* seed)
 {
    TM_BEGIN(atomic){
     for(int o=0; o<CFG.ops; o++){
@@ -111,6 +111,7 @@ void bench_test(uintptr_t, uint32_t* seed)
      }
     }
    }TM_END;
+   return 0;
 }
   /*TM_BEGIN(atomic){
     bool found;

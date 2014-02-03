@@ -17,7 +17,9 @@
 #include "algs/algs.hpp"
 #include "inst.hpp"
 #include <fstream>
-#include "stm/lib_hicamp.h"
+#include "sit_seg.h"
+
+//#include "stm/lib_hicamp.h"
 
 using namespace stm;
 
@@ -189,6 +191,7 @@ namespace stm
 
       // create a TxThread and save it in thread-local storage
       Self = new TxThread();
+      sit_thread::sit_thread_init();
   }
 
   /**
@@ -212,6 +215,8 @@ namespace stm
   void sys_shutdown()
   {
       static volatile unsigned int mtx = 0;
+      sit_thread::sit_thread_shutdown();
+      /*
       while (!bcas32(&mtx, 0u, 1u)) { }
 
       uint64_t nontxn_count = 0;                // time outside of txns
@@ -233,12 +238,13 @@ namespace stm
       }
       txn_count = rw_txns + ro_txns;
       pct_ro = (!txn_count) ? 0 : (100 * ro_txns) / txn_count;
+      */
       /* std::ofstream myfile, myfiletxn;
       myfile.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews.txt");
       myfiletxn.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews_txn.txt");
       std::set <uint64_t> unique_lines;*/
 
-      std::cout << "Total nontxn work:\t" << nontxn_count << std::endl;
+      //std::cout << "Total nontxn work:\t" << nontxn_count << std::endl;
       /*for (uint32_t i = 0; i < threadcount.val; i++) {
 	std::cout << "---------Writeskews of thread : " << i << "--------" << std::endl;
 	TxThread* tx = threads[i];*/
@@ -294,7 +300,7 @@ namespace stm
 
       // if we ever switched to ProfileApp, then we should print out the
       // ProfileApp custom output.
-      if (app_profiles) {
+      /*if (app_profiles) {
           uint32_t divisor =
               (curr_policy.ALG_ID == ProfileAppAvg) ? txn_count : 1;
           if (divisor == 0)
@@ -313,7 +319,7 @@ namespace stm
                     << pct_ro << " #" << std::endl;
       }
       CFENCE;
-      mtx = 0;
+      mtx = 0;*/
   }
 
   /**

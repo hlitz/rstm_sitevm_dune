@@ -79,7 +79,7 @@
 #include "sort.h"
 #include "types.h"
 #include "vector.h"
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 enum data_config {
     DATA_PRECISION = 100,

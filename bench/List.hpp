@@ -11,6 +11,9 @@
 #ifndef LIST_HPP__
 #define LIST_HPP__
 
+#define XBEGIN asm(" movl $1028, %ecx\n\t"  "xchg %rcx, %rcx")
+#define XEND asm(" movl $1029, %ecx\n\t"  "xchg %rcx, %rcx")
+
 // We construct other data structures from the List. In order to do their
 // sanity checks correctly, we might need to pass in a validation function of
 // this type
@@ -81,11 +84,14 @@ List::List(){
 // simple sanity check: make sure all elements of the list are in sorted order
 bool List::isSane(void) const
 {
+
   bool correct = true;
   const Node* prev(sentinel);
   const Node* curr((prev->m_next));
   int elems = 0;
   while (curr != NULL) {
+
+
     if ((prev->m_val) >= (curr->m_val))
       correct = false;
     prev = curr;
@@ -98,13 +104,15 @@ bool List::isSane(void) const
 
   if(!correct){
     while (curr2 != NULL) {
-      std::cout << prev2->m_val<< " >= " <<curr2->m_val << std::endl;
+      
       prev2 = curr2;
       curr2 = curr2->m_next;
       
     }
+
     return false;
   }
+
   return true;
 }
 
@@ -131,7 +139,7 @@ bool List::insert(int val TM_ARG)
     // traverse the list to find the insertion point
     const Node* prev(sentinel);
     const Node* curr(TM_READ(prev->m_next));
-    //printf("start insert\n");
+
     while (curr != NULL) {
         if (TM_READ(curr->m_val) >= val)
             break;
@@ -145,15 +153,12 @@ bool List::insert(int val TM_ARG)
 
         // create the new node
         Node* i = (Node*)TM_ALLOC(sizeof(Node));
-	//std::cout << "alloc ins " << i << std::endl;
         i->m_val = val;
         i->m_next = const_cast<Node*>(curr);
         TM_WRITE(insert_point->m_next, i);
-	//std::cout << "now return " << std::endl;
 	return true;
     }
-    else
-      return false;
+    return false;
 }
 
 // search function
@@ -206,22 +211,22 @@ bool List::remove(int val TM_ARG)
     // find the node whose val matches the request
     const Node* prev(sentinel);
     const Node* curr(TM_READ(prev->m_next));
-    
     while (curr != NULL) {
         // if we find the node, disconnect it and end the search
         if (TM_READ(curr->m_val) == val) {
             Node* mod_point = const_cast<Node*>(prev);
             TM_WRITE(mod_point->m_next, TM_READ(curr->m_next));
-	    //TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
+	    TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
+
             // delete curr...
             TM_FREE(const_cast<Node*>(curr));
 	    return true;
-            break;
+            //break;
         }
         else if (TM_READ(curr->m_val) > val) {
             // this means the search failed
 	  return false;
-            break;
+	  // break;
         }
         prev = curr;
         curr = TM_READ(prev->m_next);
@@ -246,3 +251,5 @@ void List::overwrite(int val TM_ARG)
 }
 
 #endif // LIST_HPP__
+
+

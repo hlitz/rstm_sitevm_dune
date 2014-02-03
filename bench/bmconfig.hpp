@@ -48,7 +48,7 @@ extern Config CFG TM_ALIGN(64);
 void bench_init();
 
 /*** Run a bunch of increment transactions */
-void bench_test(uintptr_t, uint32_t*);
+int bench_test(uintptr_t, uint32_t*);
 
 /*** Ensure the final state of the benchmark satisfies all invariants */
 bool bench_verify();

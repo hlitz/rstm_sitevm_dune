@@ -169,11 +169,12 @@ void bench_init()
 }
 
 /*** Run a bunch of random transactions */
-void bench_test(uintptr_t, uint32_t*)
+int bench_test(uintptr_t, uint32_t*)
 {
     TM_BEGIN(atomic) {
         DataTypeTest(TM_PARAM_ALONE);
     } TM_END;
+    return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

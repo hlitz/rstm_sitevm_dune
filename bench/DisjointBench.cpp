@@ -90,7 +90,7 @@ void bench_init()
 }
 
 /*** Run a bunch of random transactions */
-void bench_test(uintptr_t id, uint32_t* seed)
+int bench_test(uintptr_t id, uint32_t* seed)
 {
    uint32_t act = rand_r(seed) % 100;
     // NB: volatile needed because using a non-volatile local in conjunction
@@ -105,6 +105,7 @@ void bench_test(uintptr_t id, uint32_t* seed)
         else
             SET->r_rw_transaction(id, start TM_PARAM);
     } TM_END;
+    return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

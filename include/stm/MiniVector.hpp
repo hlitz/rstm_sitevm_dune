@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <string.h>
 #include <common/platform.hpp>
-#include "stm/lib_hicamp.h"
+//#include "stm/lib_hicamp.h"
 
 namespace stm
 {

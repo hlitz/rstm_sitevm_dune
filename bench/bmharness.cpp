@@ -19,6 +19,8 @@
 #include <common/platform.hpp>
 #include <common/locks.hpp>
 #include "bmconfig.hpp"
+#include "sit_seg.h"
+#include "sit_malloc.h"
 
 using std::string;
 using std::cout;
@@ -129,27 +131,35 @@ extern "C" void catch_SIGALRM(int) {
 /**
  *  Support a few lightweight barriers
  */
+  uint32_t* barriers;
 void
 barrier(uint32_t which)
 {
-    static volatile uint32_t barriers[16] = {0};
+  
+  static volatile bool initialized = false;
+  if(!initialized){
+    barriers = (uint32_t*)hccalloc(16,sizeof(uint32_t));
+    initialized = true;
+  }
     CFENCE;
     fai32(&barriers[which]);
-    while (barriers[which] != CFG.threads) { }
+    while (barriers[which] != CFG.threads) { 
+      std::cout << barriers[which] << " bar thresds " << CFG.threads << std::endl; }
     CFENCE;
 }
 
 /*** Run a timed or fixed-count experiment */
-void
+int32_t
 run(uintptr_t id)
 {
-  
+
     // create a transactional context (repeat calls from thread 0 are OK)
     TM_THREAD_INIT();
-
+    int32_t inserts = 0;
     // wait until all threads created, then set alarm and read timer
-    barrier(0);
-    if (id == 0) {
+    //barrier(0);
+    sit_thread::sit_thread_barrier_wait(0);
+        if (id == 0) {
         if (!CFG.execute) {
             signal(SIGALRM, catch_SIGALRM);
             alarm(CFG.duration);
@@ -158,15 +168,17 @@ run(uintptr_t id)
     }
 
     // wait until read of start timer finishes, then start transactios
-    barrier(1);
-
+    //barrier(1);
+    sit_thread::sit_thread_barrier_wait(1);
     uint32_t count = 0;
     uint32_t seed = id; // not everyone needs a seed, but we have to support it
     if (!CFG.execute) {
         // run txns until alarm fires
         while (CFG.running) {
-  
-            bench_test(id, &seed);
+            inserts += bench_test(id, &seed);
+
+	    //if(seed==66) inserts++;
+	    //else if(seed==77) inserts--;
             ++count;
             nontxnwork(); // some nontx work between txns?
         }
@@ -174,19 +186,26 @@ run(uintptr_t id)
     else {
       // run fixed number of txns
         for (uint32_t e = 0; e < CFG.execute; e++) {
-            bench_test(id, &seed);
+	  //
+            inserts += bench_test(id, &seed);
+	    //	    if(e%10000==0) std::cout << "10 k iters id : "<< sit_thread::sit_gettid() << " e: " << e << std::endl;
+	    //if(seed==66) inserts++;
+	    //else if(seed==77) inserts--;
             ++count;
             nontxnwork(); // some nontx work between txns?
         }
     }
 
     // wait until all txns finish, then get time
-    barrier(2);
+    //barrier(2);
+    sit_thread::sit_thread_barrier_wait(2);
     if (id == 0)
         CFG.time = getElapsedTime() - CFG.time;
 
     // add this thread's count to an accumulator
     faa32(&CFG.txcount, count);
+        std::cout << "in run() per thread inserts : " << sit_thread::sit_gettid() << " : " << inserts << std::endl;
+    return inserts;
 }
 
 /**
@@ -201,9 +220,10 @@ NOINLINE
 void*
 run_wrapper(void* i)
 {
-    run((uintptr_t)i);
+    int64_t inserts = run((uintptr_t)i);
+    //bench_verify();
     TM_THREAD_SHUTDOWN();
-    return NULL;
+    return (void*)inserts;// NULL;
 }
 }
 
@@ -220,7 +240,7 @@ int main(int argc, char** argv) {
 
     void* args[256];
     pthread_t tid[256];
-
+    int inserts = 0;
     // set up configuration structs for the threads we'll create
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -236,35 +256,44 @@ int main(int argc, char** argv) {
 
 
     // actually create the threads
-    for (uint32_t j = 1; j < CFG.threads; j++)
-        pthread_create(&tid[j], &attr, &run_wrapper, args[j]);
+  for (uint32_t j = 1; j < CFG.threads; j++){
+    sit_thread::sit_thread_create(&run_wrapper, args[j]);
+  }
+  //        pthread_create(&tid[j], &attr, &run_wrapper, args[j]);
+  
+  // all of the other threads should be queued up, waiting to run the
+  // benchmark, but they can't until this thread starts the benchmark
+  // too...
+  inserts += (intptr_t)run_wrapper(args[0]);
+  //std::cout << " retval tid : "<< sit_thread::sit_gettid() << " : " <<inserts << std::endl;
+  
+  // Don't call any more transactional functions, because run_wrapper called
+  // shutdown.
 
-    // all of the other threads should be queued up, waiting to run the
-    // benchmark, but they can't until this thread starts the benchmark
-    // too...
-    run_wrapper(args[0]);
-
-    // Don't call any more transactional functions, because run_wrapper called
-    // shutdown.
-
-    // everyone should be done.  Join all threads so we don't leave anything
-    // hanging around
-    for (uint32_t k = 1; k < CFG.threads; k++)
-        pthread_join(tid[k], NULL);
-    clock_gettime(CLOCK_MONOTONIC, &finish);
+  // everyone should be done.  Join all threads so we don't leave anything
+  // hanging around
+  for (uint32_t k = 1; k < CFG.threads; k++){
+    void* retval;
+    sit_thread::sit_thread_join(k, &retval);
+    inserts += (intptr_t)retval;
+    //std::cout << "retval "<< sit_thread::sit_gettid() << " : "  << (intptr_t)retval << std::endl;
+  }
+  //        pthread_join(tid[k], NULL);
+  clock_gettime(CLOCK_MONOTONIC, &finish);
     
-    elapsed = (finish.tv_sec - start.tv_sec);
-    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
-    std::cout << "time: " << elapsed <<  std::endl;
+  elapsed = (finish.tv_sec - start.tv_sec);
+  elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+  std::cout << "time: " << elapsed <<  std::endl;
     
-    bool v = bench_verify();
-    std::cout << "Verification: " << (v ? "Passed" : "Failed") << "\n";
+  bool v = bench_verify();
+  std::cout << "Verification: " << (v ? "Passed" : "Failed") << "\n";
+  std::cout << "Sum of inserts/deletions " << inserts << std::endl;
 
-    dump_csv();
-
-    // And call sys shutdown stuff
-    TM_SYS_SHUTDOWN();
-    return 0;
+  dump_csv();
+  
+  // And call sys shutdown stuff
+  TM_SYS_SHUTDOWN();
+  return 0;
 }
 
 #endif // BMHARNESS_HPP__

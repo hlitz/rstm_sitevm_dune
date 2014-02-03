@@ -94,7 +94,7 @@
 #include "timer.h"
 #include "tm.h"
 #include "util.h"
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 double global_time = 0.0;
 

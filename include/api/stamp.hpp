@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <api/library.hpp>
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 /**
  *  We are gradually moving to a state where STAMP will be in pure C++.

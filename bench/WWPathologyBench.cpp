@@ -63,7 +63,7 @@ void bench_init()
  * threads either increment from front to back or from back to front,
  * based on ID.  This creates lots of conflicts
  */
-void bench_test(uintptr_t id, uint32_t*)
+int bench_test(uintptr_t id, uint32_t*)
 {
     TM_BEGIN(atomic) {
         // need to look at the timer, or we'll livelock!
@@ -74,6 +74,7 @@ void bench_test(uintptr_t id, uint32_t*)
                 list->increment_backward(TM_PARAM_ALONE);
         }
     } TM_END;
+    return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

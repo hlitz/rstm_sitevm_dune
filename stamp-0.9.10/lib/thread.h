@@ -76,7 +76,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include "types.h"
-#include "stm/lib_hicamp.h"
+//#include "stm/lib_hicamp.h"
 #ifdef OTM
 #include "omp.h"
 #endif

@@ -68,7 +68,7 @@ void bench_init()
 }
 
 /*** Run a bunch of random transactions */
-void bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t, uint32_t* seed)
 {
  TM_BEGIN(atomic){
     for(int o=0; o<CFG.ops; o++){
@@ -92,6 +92,7 @@ void bench_test(uintptr_t, uint32_t* seed)
     }
     }
  }TM_END;
+ return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

@@ -63,12 +63,13 @@ void bench_init()
 }
 
 /*** Run a bunch of random transactions */
-void bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t, uint32_t* seed)
 {
     uint32_t val = rand_r(seed) % CFG.elements;
     TM_BEGIN(atomic) {
         SET->modify(val TM_PARAM);
     } TM_END;
+    return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */

@@ -9,7 +9,6 @@
 
 set(
   sources
-  ../../libstm/lib_hicamp.c
   ../lib/avltree.c
   ../lib/heap.c
   ../lib/list.c

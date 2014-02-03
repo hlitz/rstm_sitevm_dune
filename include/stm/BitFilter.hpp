@@ -15,7 +15,7 @@
  */
 
 
-#include "stm/lib_hicamp.h"
+//#include "stm/lib_hicamp.h"
 
 #ifndef BITFILTER_HPP__
 #define BITFILTER_HPP__

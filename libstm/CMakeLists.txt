@@ -14,7 +14,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif ()
 
 set(sources
-  lib_hicamp.c
+  lib_sitevm.cpp
   txthread.cpp
   inst.cpp
   types.cpp
@@ -22,6 +22,7 @@ set(sources
   WBMMPolicy.cpp
   irrevocability.cpp
   algs/algs.cpp
+  algs/sitevm.cpp
   algs/htm.cpp
   algs/biteager.cpp
   algs/biteagerredo.cpp
@@ -85,6 +86,8 @@ foreach (arch ${rstm_archs})
   append_property(TARGET stm${arch} COMPILE_FLAGS -m${arch})
   if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(stm${arch} -lrt)
+    target_link_libraries(stm${arch} -lksnap)
+    target_link_libraries(stm${arch} -lsit)
   endif ()
   if (CMAKE_SYSTEM_NAME MATCHES "SunOS")
     target_link_libraries(stm${arch} -lmtmalloc)

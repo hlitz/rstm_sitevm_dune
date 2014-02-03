@@ -30,7 +30,7 @@
 #include "stm/metadata.hpp"
 #include <iostream>
 #include <vector>
-#include "stm/lib_hicamp.h"
+#include "stm/lib_sitevm.h"
 
 namespace stm
 {
