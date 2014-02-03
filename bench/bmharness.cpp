@@ -21,6 +21,7 @@
 #include "bmconfig.hpp"
 #include "sit_seg.h"
 #include "sit_malloc.h"
+#include "sit_thread.h"
 
 using std::string;
 using std::cout;
@@ -239,7 +240,7 @@ int main(int argc, char** argv) {
     bench_init();
 
     void* args[256];
-    pthread_t tid[256];
+    //pthread_t tid[256];
     int inserts = 0;
     // set up configuration structs for the threads we'll create
     pthread_attr_t attr;
