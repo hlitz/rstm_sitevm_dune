@@ -21,7 +21,7 @@ set(rstm_init_cxx_flags_Sun -mt -DHT_DEBUG +w -features=zla -template=no%extdef)
 set(rstm_init_cxx_flags_Sun_x86 -xarch=sse2)
 set(rstm_init_cxx_flags_Sun_sparc -xarch=native -xcode=pic32 -Qoption cg -Qiselect-movxtod=0,-Qiselect-movitof=0,-Qiselect-unfused_muladd=0,-Qiselect-sqrt1x=0,-Qiselect-fused_muladd=0)
 set(rstm_init_cxx_flags_Sun_RELWITHDEB_INFO -O5 -g0)
-set(rstm_init_cxx_flags_GNU_x86 -msse2 -mfpmath=sse -march=core2 -mtune=core2)
+set(rstm_init_cxx_flags_GNU_x86 -std=c++11 -msse2 -mfpmath=sse -march=core2 -mtune=core2)
 set(rstm_init_cxx_flags_GNU_sparc -mcpu=v9)
 set(rstm_init_cxx_flags_GNU_RELWITHDEBINFO -O3 -g)
 # the below warnings aren't helpful, and omitting the frame pointer will break
