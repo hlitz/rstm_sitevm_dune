@@ -1,10 +1,16 @@
-rstm_zsim
-Rochester STM repo with zsim htm algo
+RSTM ported to sitevm_dune
 
-create build dir
-enter build dir
-$RSTM_SRC_DIR/cmake
+do SITEVM_HOME/make install to install sitevm headers and static libraries
+
+mkdir RSTM_HOME/../RSTM_BUILD_DIR/
+
+cd RSTM_BUILD_DIR
+
+cmake ../RSTM_HOME
+
 make
+
+run RSTM_BUILD_DIR/bench or RSTM_BUILD_DIR/stamp benchmarks
 
 
 RSTM Release 7 Notes
