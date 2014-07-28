@@ -128,6 +128,7 @@ int bench_test(uintptr_t id, uint32_t* seed)
       bool res = false;
       if (act < CFG.lookpct) {
 	uint64_t begin = rdtsc();
+	//std::cout << "up" << std::endl;
 	TM_BEGIN(atomic) {
 	  //	val = 2000;
 	  //SET->lookup(val /*TM_PARAM*/);

@@ -10,6 +10,8 @@ cmake ../RSTM_HOME
 
 make
 
+export STM_CONFIG=SITE_VM
+
 run RSTM_BUILD_DIR/bench or RSTM_BUILD_DIR/stamp benchmarks
 
 

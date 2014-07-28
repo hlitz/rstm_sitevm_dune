@@ -193,7 +193,8 @@ run(uintptr_t id)
       // run fixed number of txns
         for (uint32_t e = 0; e < CFG.execute; e++) {
 	  //
-	  //	  std::cout << "executing tid " << sit_thread::sit_gettid() << std::endl;
+	  //	  printf("e %i tid %i\n", e, id);
+	  //	  std::cout << "executing tid " << e  << " TID " << std::endl;
             inserts += bench_test(id, &seed);
 	    //	    if(e%10000==0) std::cout << "10 k iters id : "<< sit_thread::sit_gettid() << " e: " << e << std::endl;
 	    //if(seed==66) inserts++;
