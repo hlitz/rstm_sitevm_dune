@@ -216,7 +216,7 @@ namespace stm
     static volatile unsigned int mtx = 0;
       
       //sit_thread::sit_thread_shutdown();
-      
+    sitevm_exit();
       while (!bcas32(&mtx, 0u, 1u)) { }
 
       uint64_t nontxn_count = 0;                // time outside of txns
