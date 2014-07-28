@@ -42,13 +42,13 @@ class HashTable
   {
     N_SLOTS = _buckets;
     std::cout << " buck " << N_BUCKETS << " slots " << N_SLOTS << std::endl;
-    bucket = (int **)hcmalloc(sizeof(uint64_t*)*N_BUCKETS);
-    bucket_entries = (uint32_t*)hcmalloc(sizeof(uint64_t)*N_BUCKETS);
+    bucket = (int **)sitemalloc(sizeof(uint64_t*)*N_BUCKETS);
+    bucket_entries = (uint32_t*)sitemalloc(sizeof(uint64_t)*N_BUCKETS);
     for(uint32_t i =0; i< N_BUCKETS; i++){
       bucket_entries[i] = 0;
     }
     for(uint32_t i =0; i< N_BUCKETS; i++){
-      bucket[i] = (int*)hcmalloc(sizeof(uint64_t)*N_SLOTS);
+      bucket[i] = (int*)sitemalloc(sizeof(uint64_t)*N_SLOTS);
     }
   }
 

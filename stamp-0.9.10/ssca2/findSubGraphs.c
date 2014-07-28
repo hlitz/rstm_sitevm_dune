@@ -83,6 +83,7 @@
 void
 findSubGraphs0 (void* argPtr)
 {
+  TM_THREAD_ENTER();
     graph* GPtr                = ((findSubGraphs0_arg_t*)argPtr)->GPtr;
     V*     intWtVList          = ((findSubGraphs0_arg_t*)argPtr)->intWtVList;
     V*     strWtVList          = ((findSubGraphs0_arg_t*)argPtr)->strWtVList;
@@ -393,6 +394,7 @@ findSubGraphs1 (void* argPtr)
 void
 findSubGraphs2 (void* argPtr)
 {
+  TM_THREAD_ENTER();
     graph* GPtr                = ((findSubGraphs2_arg_t*)argPtr)->GPtr;
     Vd*    intWtVDList         = ((findSubGraphs2_arg_t*)argPtr)->intWtVDList;
     Vd*    strWtVDList         = ((findSubGraphs2_arg_t*)argPtr)->strWtVDList;

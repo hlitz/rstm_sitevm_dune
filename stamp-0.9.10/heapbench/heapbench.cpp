@@ -154,12 +154,12 @@ comparator_t heapComp(&heapCompare, &TMheapCompare);
 void bench_init(void* _CFG)
 {
   CFG_t* CFG = (CFG_t*)_CFG;
-  data = (uint64_t*)hcmalloc(CFG->elements*sizeof(uint64_t));
+  data = (uint64_t*)sitemalloc(CFG->elements*sizeof(uint64_t));
   for(int i =0; i< CFG->elements; i++){
     data[i] = i;
   }
   //SET = new HashTable();
-  //SET = (MAP_T*)hcmalloc(sizeof(MAP_T));
+  //SET = (MAP_T*)sitemalloc(sizeof(MAP_T));
   SET = heap_alloc(10, &heapComp);
   //SET->init((CFG.elements/4));
   std::cout << "startup " << std::endl;

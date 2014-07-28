@@ -77,8 +77,8 @@ class DList
 // constructor: head and tail have extreme values, point to each other
 DList::DList()// : head(new Node(-1)), tail(new Node(INT_MAX))
 {
-  head = (Node*)hcmalloc(sizeof(Node));
-  tail = (Node*)hcmalloc(sizeof(Node));
+  head = (Node*)sitemalloc(sizeof(Node));
+  tail = (Node*)sitemalloc(sizeof(Node));
   //std::cout << "alloced head and tail " << std::endl;
   new (head) Node(-1);
   new (tail) Node(INT_MAX);

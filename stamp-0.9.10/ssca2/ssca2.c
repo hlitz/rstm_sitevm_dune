@@ -124,6 +124,12 @@ MAIN(argc, argv)
 #endif /* ENABLE_KERNEL3 */
 
     double totalTime = 0.0;
+    computeGraph_arg_t computeGraphArgs;
+    getStartLists_arg_t getStartListsArg;
+    findSubGraphs1_arg_t findSubGraphs0Arg;
+    findSubGraphs1_arg_t findSubGraphs1Arg;
+    findSubGraphs1_arg_t findSubGraphs2Arg;
+    findSubGraphs1_arg_t findSubGraphs3Arg;
 
     /* -------------------------------------------------------------------------
      * Preamble
@@ -143,7 +149,7 @@ MAIN(argc, argv)
     TM_STARTUP(THREADS);
     P_MEMORY_STARTUP(THREADS);
     thread_startup(THREADS);
-
+    
     puts("");
     printf("Number of processors:       %ld\n", THREADS);
     printf("Problem Scale:              %ld\n", SCALE);
@@ -160,10 +166,12 @@ MAIN(argc, argv)
      */
 
     printf("\nScalable Data Generator - genScalData() beginning execution...\n");
+    TM_THREAD_ENTER();
+    //TM_BEGIN();
     genScalDataAlloc();
     SDGdata = (graphSDG*)SEQ_MALLOC(sizeof(graphSDG));
     assert(SDGdata);
-
+    //TM_END();
 #ifdef USE_PARALLEL_DATA_GENERATION
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
@@ -212,22 +220,21 @@ MAIN(argc, argv)
      */
 
     printf("\nKernel 1 - computeGraph() beginning execution...\n");
-
+    //TM_BEGIN();
     G = (graph*)SEQ_MALLOC(sizeof(graph));
     assert(G);
-    computeGraphAlloc();
 
-    computeGraph_arg_t computeGraphArgs;
     computeGraphArgs.GPtr       = G;
     computeGraphArgs.SDGdataPtr = SDGdata;
-
+    computeGraphAlloc((void*)&computeGraphArgs);
+    //TM_END();
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark
     //     instead of simulator cycles.
     GOTO_SIM();
     TIMER_READ(start);
-
+    //    thread_barrier_wait();
 #ifdef OTM
 #pragma omp parallel
     {
@@ -257,7 +264,7 @@ MAIN(argc, argv)
      */
 
     printf("\nKernel 2 - getStartLists() beginning execution...\n");
-
+    //TM_BEGIN();
     maxIntWtListSize = 0;
     soughtStrWtListSize = 0;
     maxIntWtList = (edge*)SEQ_MALLOC(sizeof(edge));
@@ -265,13 +272,13 @@ MAIN(argc, argv)
     soughtStrWtList = (edge*)SEQ_MALLOC(sizeof(edge));
     assert(soughtStrWtList);
 
-    getStartLists_arg_t getStartListsArg;
     getStartListsArg.GPtr                = G;
     getStartListsArg.maxIntWtListPtr     = &maxIntWtList;
     getStartListsArg.maxIntWtListSize    = &maxIntWtListSize;
     getStartListsArg.soughtStrWtListPtr  = &soughtStrWtList;
     getStartListsArg.soughtStrWtListSize = &soughtStrWtListSize;
     getStartListsAlloc();
+    //TM_END();
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark
@@ -309,13 +316,12 @@ MAIN(argc, argv)
     printf("\nKernel 3 - findSubGraphs() beginning execution...\n");
 
     if (K3_DS == 0) {
-
+      TM_BEGIN();
         intWtVList = (V*)SEQ_MALLOC(G->numVertices * maxIntWtListSize * sizeof(V));
         assert(intWtVList);
         strWtVList = (V*)SEQ_MALLOC(G->numVertices * soughtStrWtListSize * sizeof(V));
         assert(strWtVList);
 
-        findSubGraphs0_arg_t findSubGraphs0Arg;
         findSubGraphs0Arg.GPtr                = G;
         findSubGraphs0Arg.intWtVList          = intWtVList;
         findSubGraphs0Arg.strWtVList          = strWtVList;
@@ -323,7 +329,7 @@ MAIN(argc, argv)
         findSubGraphs0Arg.maxIntWtListSize    = maxIntWtListSize;
         findSubGraphs0Arg.soughtStrWtList     = soughtStrWtList;
         findSubGraphs0Arg.soughtStrWtListSize = soughtStrWtListSize;
-
+	TM_END();
         // NB: Since ASF/PTLSim "REAL" is native execution, and since we are
         //     using wallclock time, we want to be sure we read time inside the
         //     simulator, or else we report native cycles spent on the
@@ -343,13 +349,12 @@ MAIN(argc, argv)
         //     region for PTLSim/ASF
         GOTO_REAL();
     } else if (K3_DS == 1) {
-
+      TM_BEGIN();
         intWtVLList = (Vl**)SEQ_MALLOC(maxIntWtListSize * sizeof(Vl*));
         assert(intWtVLList);
         strWtVLList = (Vl**)SEQ_MALLOC(soughtStrWtListSize * sizeof(Vl*));
         assert(strWtVLList);
 
-        findSubGraphs1_arg_t findSubGraphs1Arg;
         findSubGraphs1Arg.GPtr                = G;
         findSubGraphs1Arg.intWtVLList         = intWtVLList;
         findSubGraphs1Arg.strWtVLList         = strWtVLList;
@@ -357,7 +362,7 @@ MAIN(argc, argv)
         findSubGraphs1Arg.maxIntWtListSize    = maxIntWtListSize;
         findSubGraphs1Arg.soughtStrWtList     = soughtStrWtList;
         findSubGraphs1Arg.soughtStrWtListSize = soughtStrWtListSize;
-
+	TM_END();
         // NB: Since ASF/PTLSim "REAL" is native execution, and since we are
         //     using wallclock time, we want to be sure we read time inside the
         //     simulator, or else we report native cycles spent on the
@@ -403,13 +408,13 @@ MAIN(argc, argv)
         */
 
     } else if (K3_DS == 2) {
-
+      TM_BEGIN();
         intWtVDList = (Vd *) SEQ_MALLOC(maxIntWtListSize * sizeof(Vd));
         assert(intWtVDList);
         strWtVDList = (Vd *) SEQ_MALLOC(soughtStrWtListSize * sizeof(Vd));
         assert(strWtVDList);
 
-        findSubGraphs2_arg_t findSubGraphs2Arg;
+
         findSubGraphs2Arg.GPtr                = G;
         findSubGraphs2Arg.intWtVDList         = intWtVDList;
         findSubGraphs2Arg.strWtVDList         = strWtVDList;
@@ -417,7 +422,7 @@ MAIN(argc, argv)
         findSubGraphs2Arg.maxIntWtListSize    = maxIntWtListSize;
         findSubGraphs2Arg.soughtStrWtList     = soughtStrWtList;
         findSubGraphs2Arg.soughtStrWtListSize = soughtStrWtListSize;
-
+	TM_END();
         // NB: Since ASF/PTLSim "REAL" is native execution, and since we are
         //     using wallclock time, we want to be sure we read time inside the
         //     simulator, or else we report native cycles spent on the
@@ -587,7 +592,7 @@ MAIN(argc, argv)
         P_FREE(strWtVDList);
         P_FREE(intWtVDList);
     }
-
+   
     P_FREE(soughtStrWtList);
     P_FREE(maxIntWtList);
 

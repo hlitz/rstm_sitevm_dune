@@ -22,7 +22,8 @@ macro (add_stamp_executable exec name arch)
 
   # Link with the pthreads library if needed.
   target_link_libraries(${${exec}} ${CMAKE_THREAD_LIBS_INIT})
-
+  target_link_libraries(${${exec}} sitevm)
+     
   # Set some baseline defines.
   add_target_definitions(${${exec}} STM STM_API_STAMP HAVE_CONFIG_H)
 endmacro ()
@@ -60,7 +61,8 @@ macro (add_stamp_itm_executable exec name arch)
 
   # link with whatever threading library we need.
   target_link_libraries(${${exec}} ${CMAKE_THREAD_LIBS_INIT})
-
+  target_link_libraries(${${exec}} sitevm)
+     
   # and set the baseline definitions
   add_target_definitions(${${exec}} CXXTM ITM HAVE_CONFIG_H)
 endmacro ()
@@ -82,7 +84,8 @@ macro (add_stamp_itm2stm_executable exec name arch)
 
   # link with whatever threading library we need.
   target_link_libraries(${${exec}} ${CMAKE_THREAD_LIBS_INIT})
-
+  target_link_libraries(${${exec}} sitevm)
+     
   # and set the baseline definitions
   add_target_definitions(${${exec}} CXXTM ITM HAVE_CONFIG_H)
 endmacro ()

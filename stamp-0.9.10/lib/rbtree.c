@@ -226,16 +226,16 @@ lookup (rbtree_t* s, void* k)
 static node_t*
 TMlookup (TM_ARGDECL  rbtree_t* s, void* k)
 {
-    node_t* p = TX_LDNODE(s, root); //pr
+    node_t* p = TX_LDNODE_PROMO(s, root);
 
     long int (*compare)(TM_ARGDECL const void*, const void*) = s->compare->compare_tm;
 
     while (p != NULL) {
-        long cmp = compare(TM_ARG k, TX_LDF_P(p, k)); //pr
+        long cmp = compare(TM_ARG k, TX_LDF_P_PROMO(p, k));
         if (cmp == 0) {
             return p;
         }
-        p = ((cmp < 0) ? TX_LDNODE(p, l) : TX_LDNODE(p, r)); //2xpr
+        p = ((cmp < 0) ? TX_LDNODE_PROMO(p, l) : TX_LDNODE_PROMO(p, r));
     }
 
     return NULL;
@@ -303,7 +303,7 @@ TMrotateLeft (TM_ARGDECL  rbtree_t* s, node_t* x)
     TX_STF_P(r, p, xp);
     if (xp == NULL) {
         TX_STF_P(s, root, r);
-    } else if (TX_LDNODE(xp, l) == x) {
+    } else if (TX_LDNODE_PROMO(xp, l) == x) {
         TX_STF_P(xp, l, r);
     } else {
         TX_STF_P(xp, r, r);
@@ -437,7 +437,7 @@ rightOf (node_t* n)
 static inline node_t*
 TMrightOf (TM_ARGDECL  node_t* n)
 {
-    return (n ? TX_LDNODE(n, r) : NULL);
+    return (n ? TX_LDNODE_PROMO(n, r) : NULL);
 }
 #define TX_RIGHT_OF(n)  TMrightOf(TM_ARG  n)
 
@@ -563,7 +563,7 @@ TMfixAfterInsertion (TM_ARGDECL  rbtree_t* s, node_t* x)
 {
     TX_STF(x, c, RED);
     while (x != NULL && x != TX_LDNODE_PROMO(s, root)) {
-        node_t* xp = TX_LDNODE(x, p);
+        node_t* xp = TX_LDNODE_PROMO(x, p);
         if (TX_LDF_PROMO(xp, c) != RED) {
             break;
         }
@@ -787,8 +787,8 @@ TMsuccessor  (TM_ARGDECL  node_t* t)
         return NULL;
     } else if (TX_LDNODE_PROMO(t, r) != NULL) {
         node_t* p = TX_LDNODE_PROMO(t,r);
-        while (TX_LDNODE(p, l) != NULL) {
-            p = TX_LDNODE(p, l);
+        while (TX_LDNODE_PROMO(p, l) != NULL) {
+            p = TX_LDNODE_PROMO(p, l);
         }
         return p;
     } else {
@@ -881,7 +881,7 @@ fixAfterDeletion (rbtree_t* s, node_t* x)
 static void
 TMfixAfterDeletion  (TM_ARGDECL  rbtree_t* s, node_t* x)
 {
-    while (x != TX_LDNODE(s,root) && TX_COLOR_OF(x) == BLACK) {
+    while (x != TX_LDNODE_PROMO(s,root) && TX_COLOR_OF(x) == BLACK) {
         if (x == TX_LEFT_OF(TX_PARENT_OF(x))) {
             node_t* sib = TX_RIGHT_OF(TX_PARENT_OF(x));
             if (TX_COLOR_OF(sib) == RED) {
@@ -906,7 +906,7 @@ TMfixAfterDeletion  (TM_ARGDECL  rbtree_t* s, node_t* x)
                 TX_SET_COLOR(TX_RIGHT_OF(sib), BLACK);
                 TX_ROTATE_LEFT(s, TX_PARENT_OF(x));
                 /* TODO: consider break ... */
-                x = TX_LDNODE(s,root);
+                x = TX_LDNODE_PROMO(s,root);
             }
         } else { /* symmetric */
             node_t* sib = TX_LEFT_OF(TX_PARENT_OF(x));
@@ -933,12 +933,12 @@ TMfixAfterDeletion  (TM_ARGDECL  rbtree_t* s, node_t* x)
                 TX_SET_COLOR(TX_LEFT_OF(sib), BLACK);
                 TX_ROTATE_RIGHT(s, TX_PARENT_OF(x));
                 /* TODO: consider break ... */
-                x = TX_LDNODE(s, root);
+                x = TX_LDNODE_PROMO(s, root);
             }
         }
     }
 
-    if (x != NULL && TX_LDF(x,c) != BLACK) {
+    if (x != NULL && TX_LDF_PROMO(x,c) != BLACK) {
        TX_STF(x, c, BLACK);
     }
 }
@@ -1023,14 +1023,14 @@ TMdelete (TM_ARGDECL  rbtree_t* s, node_t* p)
      */
     if (TX_LDNODE_PROMO(p, l) != NULL && TX_LDNODE_PROMO(p, r) != NULL) {
         node_t* s = TX_SUCCESSOR(p);
-        TX_STF_P(p,k, TX_LDF_P(s, k));
-        TX_STF_P(p,v, TX_LDF_P(s, v));
+        TX_STF_P(p,k, TX_LDF_P_PROMO(s, k));
+        TX_STF_P(p,v, TX_LDF_P_PROMO(s, v));
         p = s;
     } /* p has 2 children */
 
     /* Start fixup at replacement node, if it exists */
     node_t* replacement =
-        ((TX_LDNODE(p, l) != NULL) ? TX_LDNODE(p, l) : TX_LDNODE(p, r));
+        ((TX_LDNODE_PROMO(p, l) != NULL) ? TX_LDNODE_PROMO(p, l) : TX_LDNODE_PROMO(p, r));
 
     if (replacement != NULL) {
         /* Link replacement to parent */
@@ -1039,7 +1039,7 @@ TMdelete (TM_ARGDECL  rbtree_t* s, node_t* p)
         node_t* pp = TX_LDNODE(p, p);
         if (pp == NULL) {
             TX_STF_P(s, root, replacement);
-        } else if (p == TX_LDNODE(pp, l)) {
+        } else if (p == TX_LDNODE_PROMO(pp, l)) {
             TX_STF_P(pp, l, replacement);
         } else {
             TX_STF_P(pp, r, replacement);
@@ -1057,12 +1057,12 @@ TMdelete (TM_ARGDECL  rbtree_t* s, node_t* p)
     } else if (TX_LDNODE(p,p) == NULL) { /* return if we are the only node */
         TX_STF_P(s, root, (node_t*)NULL);
     } else { /* No children. Use self as phantom replacement and unlink */
-        if (TX_LDF(p,c) == BLACK) {
+        if (TX_LDF_PROMO(p,c) == BLACK) {
             TX_FIX_AFTER_DELETION(s, p);
         }
         node_t* pp = TX_LDNODE(p, p);
         if (pp != NULL) {
-            if (p == TX_LDNODE(pp, l)) {
+            if (p == TX_LDNODE_PROMO(pp, l)) {
                 TX_STF_P(pp,l, (node_t*)NULL);
             } else if (p == TX_LDNODE(pp, r)) {
                 TX_STF_P(pp, r, (node_t*)NULL);

@@ -341,8 +341,11 @@ static void
 createTaskList (void* argPtr)
 {
     TM_THREAD_ENTER();
-
+    
+    
     long myId = thread_getId();
+    //if(myId==0) getchar();
+    //thread_barrier_wait();
     long numThread = thread_getNumThread();
 
     learner_t* learnerPtr = (learner_t*)argPtr;
@@ -749,6 +752,9 @@ TMfindBestInsertTask (TM_ARGDECL  findBestTaskArg_t* argPtr)
     net_t*    netPtr                  = learnerPtr->netPtr;
     float*    localBaseLogLikelihoods = learnerPtr->localBaseLogLikelihoods;
 
+    //    printf("ptrs -- %i %i %i \n", global_insertPenalty, global_maxNumEdgeLearned, global_operationQualityFactor);
+
+
     TMpopulateParentQueryVector(TM_ARG  netPtr, toId, queries, parentQueryVectorPtr);
 
     /*
@@ -774,6 +780,7 @@ TMfindBestInsertTask (TM_ARGDECL  findBestTaskArg_t* argPtr)
     float bestLocalLogLikelihood = oldLocalLogLikelihood;
 
     status = TMNET_FINDDESCENDANTS(netPtr, toId, invalidBitmapPtr, workQueuePtr);
+    //printf("---- %p, %i %p %p\n", netPtr, toId, invalidBitmapPtr, workQueuePtr);
     assert(status);
     long fromId = -1;
 
@@ -1107,7 +1114,7 @@ TMfindBestReverseTask (TM_ARGDECL  findBestTaskArg_t* argPtr)
     /*
      * Check validity of best
      */
-
+   
     if (bestFromId != toId) {
         bool_t isTaskValid = TRUE;
         TMNET_APPLYOPERATION(netPtr, OPERATION_REMOVE, bestFromId, toId);
@@ -1174,9 +1181,8 @@ learnStructure (void* argPtr)
     list_t* taskListPtr = learnerPtr->taskListPtr;
 
     float operationQualityFactor = global_operationQualityFactor;
-
     bitmap_t* visitedBitmapPtr = PBITMAP_ALLOC(learnerPtr->adtreePtr->numVar);
-    assert(visitedBitmapPtr);
+      assert(visitedBitmapPtr);
     queue_t* workQueuePtr = PQUEUE_ALLOC(-1);
     assert(workQueuePtr);
 
@@ -1189,16 +1195,17 @@ learnStructure (void* argPtr)
         queries[v].value = QUERY_VALUE_WILDCARD;
     }
       float basePenalty = (float)(-0.5 * log((double)numRecord));
-
+  
     vector_t* queryVectorPtr = PVECTOR_ALLOC(1);
     assert(queryVectorPtr);
     vector_t* parentQueryVectorPtr = PVECTOR_ALLOC(1);
     assert(parentQueryVectorPtr);
+  
     vector_t* aQueryVectorPtr = PVECTOR_ALLOC(1);
     assert(aQueryVectorPtr);
     vector_t* bQueryVectorPtr = PVECTOR_ALLOC(1);
     assert(bQueryVectorPtr);
-
+  
     findBestTaskArg_t arg;
     arg.learnerPtr           = learnerPtr;
     arg.queries              = queries;
@@ -1208,13 +1215,15 @@ learnStructure (void* argPtr)
     arg.workQueuePtr         = workQueuePtr;
     arg.aQueryVectorPtr      = aQueryVectorPtr;
     arg.bQueryVectorPtr      = bQueryVectorPtr;
-  
+   thread_barrier_wait();
     while (1) {
 
         learner_task_t* taskPtr;
+  
         TM_BEGIN();
         taskPtr = TMpopTask(TM_ARG  taskListPtr);
         TM_END();
+  
         if (taskPtr == NULL) {
             break;
         }
@@ -1231,6 +1240,7 @@ learnStructure (void* argPtr)
          * Check if task is still valid
          */
         isTaskValid = TRUE;
+  
         switch (op) {
             case OPERATION_INSERT: {
                 if (TMNET_HASEDGE(netPtr, fromId, toId) ||

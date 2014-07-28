@@ -48,7 +48,7 @@
  */
 inline void* tx_safe_non_tx_alloc(size_t size)
 {
-    return hcmalloc(size);
+    return sitemalloc(size);
 }
 
 /**
@@ -57,7 +57,7 @@ inline void* tx_safe_non_tx_alloc(size_t size)
  */
 inline void tx_safe_non_tx_free(void * ptr)
 {
-    hcfree(ptr);
+    sitefree(ptr);
 }
 
 /**

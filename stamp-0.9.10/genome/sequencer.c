@@ -244,9 +244,15 @@ void
 sequencer_run (void* argPtr)
 {
     TM_THREAD_ENTER();
+    thread_barrier_wait();
 
+    
     long threadId = thread_getId();
-
+    
+    if(threadId==0)
+      getchar();
+    thread_barrier_wait();
+    
     sequencer_t* sequencerPtr = (sequencer_t*)argPtr;
 
     hashtable_t*      uniqueSegmentsPtr;
@@ -266,7 +272,7 @@ sequencer_run (void* argPtr)
     vector_t*   segmentsContentsPtr = segmentsPtr->contentsPtr;
     long        numSegment          = vector_getSize(segmentsContentsPtr);
     long        segmentLength       = segmentsPtr->length;
-
+    
     long i;
     long j;
     long i_start;
@@ -308,9 +314,6 @@ sequencer_run (void* argPtr)
         }
         TM_END();
     }
-
-    thread_barrier_wait();
-
     /*
      * Step 2a: Iterate over unique segments and compute hashes.
      *
@@ -365,22 +368,24 @@ sequencer_run (void* argPtr)
         list_iter_reset(&it, chainPtr);
 
         while (list_iter_hasNext(&it, chainPtr)) {
-
-            char* segment =
-                (char*)((pair_t*)list_iter_next(&it, chainPtr))->firstPtr;
+	  
+	  char* segment;// =
+	      //     (char*)((pair_t*)list_iter_next(&it, chainPtr))->firstPtr;
             constructEntry_t* constructEntryPtr;
             long j;
             ulong_t startHash;
             bool_t status;
-
+	    TM_BEGIN();
+	    segment = (char*)((pair_t*)list_iter_next(&it, chainPtr))->firstPtr;
+           
             /* Find an empty constructEntries entry */
-            TM_BEGIN();
+            //TM_BEGIN();
             while (((void*)TM_SHARED_READ_P(constructEntries[entryIndex].segment)) != NULL) {
                 entryIndex = (entryIndex + 1) % numUniqueSegment; /* look for empty */
             }
             constructEntryPtr = &constructEntries[entryIndex];
             TM_SHARED_WRITE_P(constructEntryPtr->segment, segment);
-            TM_END();
+            //TM_END();
             entryIndex = (entryIndex + 1) % numUniqueSegment;
 
             /*
@@ -397,10 +402,13 @@ sequencer_run (void* argPtr)
             constructEntryPtr->endHash = (ulong_t)hashString(&segment[1]);
 
             startHash = 0;
-            for (j = 1; j < segmentLength; j++) {
-                startHash = (ulong_t)segment[j-1] +
+	    TM_END();
+
+	    for (j = 1; j < segmentLength; j++) {
+	      TM_BEGIN();
+	      startHash = (ulong_t)segment[j-1] +
                             (startHash << 6) + (startHash << 16) - startHash;
-                TM_BEGIN();
+                //TM_BEGIN();
                 status = TMTABLE_INSERT(startHashToConstructEntryTables[j],
                                         (ulong_t)startHash,
                                         (void*)constructEntryPtr );
@@ -411,9 +419,9 @@ sequencer_run (void* argPtr)
             /*
              * For looking up construct entries quickly
              */
+            TM_BEGIN();
             startHash = (ulong_t)segment[j-1] +
                         (startHash << 6) + (startHash << 16) - startHash;
-            TM_BEGIN();
             status = TMTABLE_INSERT(hashToConstructEntryTable,
                                     (ulong_t)startHash,
                                     (void*)constructEntryPtr);
@@ -474,6 +482,7 @@ sequencer_run (void* argPtr)
 
             /* Linked list at chainPtr is constant */
             while (list_iter_hasNext(&it, chainPtr)) {
+	      TM_BEGIN();
 
                 constructEntry_t* startConstructEntryPtr =
                     (constructEntry_t*)list_iter_next(&it, chainPtr);
@@ -481,7 +490,7 @@ sequencer_run (void* argPtr)
                 long newLength = 0;
 
                 /* endConstructEntryPtr is local except for properties startPtr/endPtr/length */
-                TM_BEGIN();
+                //TM_BEGIN();
 
                 /* Check if matches */
                 if (TM_SHARED_READ_L(startConstructEntryPtr->isStart) &&
@@ -529,7 +538,6 @@ sequencer_run (void* argPtr)
         } /* for (endIndex < numUniqueSegment) */
 
         thread_barrier_wait();
-
         /*
          * Step 2c: Update jump values and hashes
          *
@@ -567,18 +575,23 @@ sequencer_run (void* argPtr)
             }
         }
 
-        thread_barrier_wait();
+	thread_barrier_wait();
 
     } /* for (substringLength > 0) */
+    /*    printf("lala\n");
+    TM_BEGIN();
 
-
+    TM_END();
+    printf("loli\n");
     thread_barrier_wait();
-
+    TM_BEGIN();
+    TM_END();
+*/
     /*
      * Step 3: Build sequence string
      */
     if (threadId == 0) {
-
+      //      TM_BEGIN();
         long totalLength = 0;
 
         for (i = 0; i < numUniqueSegment; i++) {
@@ -620,7 +633,9 @@ sequencer_run (void* argPtr)
 
         assert(sequence != NULL);
         sequence[sequenceLength] = '\0';
+	//TM_END();
     }
+    thread_barrier_wait();
 
     TM_THREAD_EXIT();
 }

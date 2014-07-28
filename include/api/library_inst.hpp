@@ -34,6 +34,7 @@
 
 namespace stm
 {
+
   /**
    *  The DISPATCH class takes an address and a type, and determines which
    *  words (represented as void*s) ought to be read and written to effect a
@@ -289,7 +290,7 @@ namespace stm
           return (T)(uintptr_t)thread->tmread_promo(thread, (void**)addr
                                               STM_MASK(~0x0));
       }
-
+  
       TM_INLINE
       static void write(T* addr, T val, TxThread* thread)
       {

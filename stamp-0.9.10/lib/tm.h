@@ -312,7 +312,8 @@
 #    define thread_getNumThread()       omp_get_num_threads()
 #    define thread_startup(numThread)   omp_set_num_threads(numThread)
 #    define thread_shutdown()           /* nothing */
-#    define thread_barrier_wait();      _Pragma ("omp barrier")
+#    define thread_barrier_wait();      assert(0)
+//_Pragma ("omp barrier")
 #    define TM_BEGIN()                  _Pragma ("omp transaction") {
 #    define TM_BEGIN_RO()               _Pragma ("omp transaction") {
 #    define TM_END()                    }
@@ -370,7 +371,7 @@
 
 #    ifdef OTM
 
-#      define TM_STARTUP(numThread)       STM_STARTUP(); \
+#      define TM_STARTUP(numThread)       STM_STARTUP(); 
                                           STM_NEW_THREADS(numThread)
 #      define TM_SHUTDOWN()               STM_SHUTDOWN()
 
@@ -378,7 +379,8 @@
 #      define TM_THREAD_EXIT()            /* Nothing */
 #      define TM_BEGIN_WAIVER()
 #      define TM_END_WAIVER()
-#      define thread_barrier_wait();      _Pragma ("omp barrier")
+#      define thread_barrier_wait();      assert(0)
+//_Pragma ("omp barrier")
 
 #      define P_MALLOC(size)              memory_get(thread_getId(), size)
 #      define P_FREE(ptr)                 /* TODO: thread local free is non-trivial */
@@ -388,6 +390,7 @@
 #    else /* !OTM */
 
 #      define TM_STARTUP(numThread)       STM_STARTUP(); \
+                                          sit_thread::sit_thread_set_numThread(numThread);
                                           STM_NEW_THREADS(numThread)
 #      define TM_SHUTDOWN()               STM_SHUTDOWN()
 
@@ -413,23 +416,25 @@
 #      include <omp.h>
 #      include "tl2.h"
 
-#      define TM_STARTUP(numThread)     STM_STARTUP()
+#      define TM_STARTUP(numThread)     STM_STARTUP(); \
+					sit_thread::sit_thread_set_numThread(numThread); 
 #      define TM_SHUTDOWN()             STM_SHUTDOWN()
 
 #      define TM_THREAD_ENTER()         /* nothing */
 #      define TM_THREAD_EXIT()          /* nothing */
 #      define TM_BEGIN_WAIVER()
 #      define TM_END_WAIVER()
-#      define thread_barrier_wait();    _Pragma ("omp barrier")
+#      define thread_barrier_wait();    assert(0)
+//_Pragma ("omp barrier")
 
-#      define P_MALLOC(size)            hcmalloc(size)
-#      define P_FREE(ptr)               hcfree(ptr)
-#      define TM_MALLOC(size)           hcmalloc(size)
-#      define TM_FREE(ptr)              hcfree(ptr) /* TODO: fix memory free problem with OpenTM */
+#      define P_MALLOC(size)            sitemalloc(size)
+#      define P_FREE(ptr)               sitefree(ptr)
+#      define TM_MALLOC(size)           sitemalloc(size)
+#      define TM_FREE(ptr)              sitefree(ptr) /* TODO: fix memory free problem with OpenTM */
 
 #    else /* !OTM */
 
-#      define TM_STARTUP(numThread)     STM_STARTUP(numThread)
+#      define TM_STARTUP(numThread)     STM_STARTUP(numThread);
 #      define TM_SHUTDOWN()             STM_SHUTDOWN()
 
 #      define TM_THREAD_ENTER()         TM_ARGDECL_ALONE = STM_NEW_THREAD(); \
@@ -438,13 +443,13 @@
 #      define TM_BEGIN_WAIVER()
 #      define TM_END_WAIVER()
 
-#      define P_MALLOC(size)            hcmalloc(size)
-#      define P_FREE(ptr)               hcfree(ptr)
-#      define SEQ_MALLOC(size)          hcmalloc(size)
-#      define SEQ_FREE(ptr)             hcfree(ptr)
+#      define P_MALLOC(size)            sitemalloc(size)
+#      define P_FREE(ptr)               sitefree(ptr)
+#      define SEQ_MALLOC(size)          sitemalloc(size)
+#      define SEQ_FREE(ptr)             sitefree(ptr)
 
 #      define TM_MALLOC(size)           TM_ALLOC(size)
-//#      define TM_FREE(ptr)              hcfree(ptr)
+//#      define TM_FREE(ptr)              sitefree(ptr)
 //#      define TM_FREE(ptr)              STM_FREE(ptr)
 #    endif /* !OTM */
 
@@ -508,12 +513,12 @@
 #      define TM_END_WAIVER()
 #  endif
 
-#  define P_MALLOC(size)                hcmalloc(size)
-#  define P_FREE(ptr)                   hcfree(ptr)
-#  define TM_MALLOC(size)               hcmalloc(size)
-#  define TM_FREE(ptr)                  hcfree(ptr)
-#  define SEQ_MALLOC(size)              hcmalloc(size)
-#  define SEQ_FREE(ptr)                 hcfree(ptr)
+#  define P_MALLOC(size)                sitemalloc(size)
+#  define P_FREE(ptr)                   sitefree(ptr)
+#  define TM_MALLOC(size)               sitemalloc(size)
+#  define TM_FREE(ptr)                  sitefree(ptr)
+#  define SEQ_MALLOC(size)              sitemalloc(size)
+#  define SEQ_FREE(ptr)                 sitefree(ptr)
 
 #  define TM_BEGIN()                    __transaction [[relaxed]] {
 #  define TM_BEGIN_RO()                 __transaction [[relaxed]] {
@@ -554,10 +559,10 @@
 
 #  else /* !SIMULATOR */
 
-#    define P_MALLOC(size)              hcmalloc(size)
-#    define P_FREE(ptr)                 hcfree(ptr)
-#    define TM_MALLOC(size)             hcmalloc(size)
-#    define TM_FREE(ptr)                hcfree(ptr)
+#    define P_MALLOC(size)              sitemalloc(size)
+#    define P_FREE(ptr)                 sitefree(ptr)
+#    define TM_MALLOC(size)             sitemalloc(size)
+#    define TM_FREE(ptr)                sitefree(ptr)
 
 #  endif /* !SIMULATOR */
 
@@ -581,7 +586,9 @@
  * 3) _F suffix: for accessing variables of type "float"
  * =============================================================================
  */
-#if defined(STM)
+
+
+#if defined(STM2)
 
 #if defined(OTM)
 
@@ -602,9 +609,15 @@
 
 #else /* OTM */
 
+
+#  define SITE_UPDATE() stm::site_update((stm::TxThread*)STM_SELF)
+#  define SITE_COMMIT() stm::site_commit((stm::TxThread*)STM_SELF)
 #  define STMREAD  stm::stm_read
 #  define STMREAD_PROMO  stm::stm_read_promo
 #  define STMWRITE stm::stm_write
+#  define thread_barrier_wait()      SITE_COMMIT();			\
+					  thread_barrier_wait();	\
+					  SITE_UPDATE()
 
 #  define TM_SHARED_READ_I(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
 #  define TM_SHARED_READ_L(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
@@ -631,6 +644,16 @@
 
 #else /* !STM */
 
+#  define SITE_UPDATE() stm::site_update((stm::TxThread*)STM_SELF)
+#  define SITE_COMMIT() stm::site_commit((stm::TxThread*)STM_SELF)
+#  define STMREAD  stm::stm_read
+#  define STMREAD_PROMO  stm::stm_read_promo
+#  define STMWRITE stm::stm_write
+#  define thread_barrier_wait()      SITE_COMMIT();			\
+					  thread_barrier_wait();	\
+					  SITE_UPDATE()
+
+
 #  define TM_SHARED_READ_I(var)         (var)
 #  define TM_SHARED_READ_L(var)         (var)
 #  define TM_SHARED_READ_P(var)         (var)
@@ -646,6 +669,12 @@
 #  define TM_LOCAL_WRITE_P(var, val)    ({var = val; var;})
 #  define TM_LOCAL_WRITE_F(var, val)    ({var = val; var;})
 
+
+#  define TM_SHARED_READ_I_PROMO(var)    (var)/*STMREAD_PROMO(&var, (stm::TxThread*)STM_SELF)*/
+#  define TM_SHARED_READ_L_PROMO(var)    (var)/*STMREAD_PROMO(&var, (stm::TxThread*)STM_SELF)*/
+#  define TM_SHARED_READ_P_PROMO(var)    (var)/*STMREAD_PROMO(&var, (stm::TxThread*)STM_SELF)*/
+#  define TM_SHARED_READ_F_PROMR(var)    (var)/*STMREAD_PROMO(&var, (stm::TxThread*)STM_SELF)*/
+
 #endif /* !STM */
 
 
@@ -657,8 +686,8 @@
  */
 #if defined(ITM)
 extern "C" {
-[[transaction_safe]] void* hcmalloc(size_t) __THROW;
-[[transaction_safe]] void hcfree(void*) __THROW;
+[[transaction_safe]] void* sitemalloc(size_t) __THROW;
+[[transaction_safe]] void sitefree(void*) __THROW;
 }
 #endif
 

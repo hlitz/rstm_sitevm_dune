@@ -109,6 +109,8 @@ namespace stm
       void  (*TM_FASTCALL commit)(TxThread*);
       void* (*TM_FASTCALL read)  (STM_READ_SIG(,,));
       void* (*TM_FASTCALL read_promo)  (STM_READ_SIG(,,));
+      void (*TM_FASTCALL site_update)  ();
+      void (*TM_FASTCALL site_commit)  ();
       void  (*TM_FASTCALL write) (STM_WRITE_SIG(,,,));
 
       /**

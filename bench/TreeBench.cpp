@@ -51,12 +51,14 @@
 /*** the tree we will manipulate in the experiment */
 RBTree* SET;
 
+void bench_update(){}
+
 /*** Initialize the counter */
 void bench_init()
 {
 
 //SET = new RBTree();
-  SET = (RBTree*)hcmalloc(sizeof(RBTree));
+  SET = (RBTree*)sitemalloc(sizeof(RBTree));
     new (SET) RBTree();
     SET->RBTreeInit();
     // warm up the datastructure

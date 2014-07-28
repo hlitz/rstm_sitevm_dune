@@ -316,7 +316,7 @@ data_copy (data_t* dstPtr, data_t* srcPtr)
     long numSrcDatum = srcPtr->numVar * srcPtr->numRecord;
     if (numDstDatum != numSrcDatum) {
         SEQ_FREE(dstPtr->records);
-        dstPtr->records = (char*)hccalloc(numSrcDatum, sizeof(char));
+        dstPtr->records = (char*)sitecalloc(numSrcDatum, sizeof(char));
         if (dstPtr->records == NULL) {
             return FALSE;
         }

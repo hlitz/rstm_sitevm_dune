@@ -50,11 +50,14 @@ int* matrix;
 /*** Initialize an array that we can use for our MCAS test */
 void bench_init()
 {
-    matrix = (int*)malloc(CFG.elements * sizeof(int));
+    matrix = (int*)sitemalloc(CFG.elements*1000 * sizeof(int));
+    std::cout << "allocated Matrix " << (uint64_t)matrix << " to " << ((uint64_t)matrix)+CFG.elements*sizeof(int)*8*1000 << " size " << CFG.elements * sizeof(int)*1000 << std::endl;
 }
 
+static uint64_t sum;
+
 /*** Run a bunch of random transactions */
-int bench_test(uintptr_t, uint32_t* seed)
+int bench_test(uintptr_t id, uint32_t* seed)
 {
     // cache the seed locally so we can restore it on abort
     //
@@ -63,7 +66,39 @@ int bench_test(uintptr_t, uint32_t* seed)
     //     allow it with -Wall -Werror.
     volatile uint32_t local_seed = *seed;
 
-    TM_BEGIN(atomic) {
+    uint32_t val = rand_r(seed) % (CFG.elements*1000);
+    
+      uint32_t act = rand_r(seed) % 100;
+
+      if (act < CFG.lookpct) {
+	//std::cout << "lookup " << id << std::endl;
+	int temp =0;
+	TM_BEGIN(atomic) {
+	  for(int i=0; i<100;i++){
+	  for(uint o=0; o<CFG.ops; o++){
+	    //temp += TM_READ(matrix[val+o]);
+	    temp += matrix[val+o];
+	  }
+	  }
+	} TM_END;
+	sum = temp;//TM_WRITE(matrix[val], temp);
+      }
+      else{
+
+
+	TM_BEGIN(atomic) {
+	  /*for(uint o=0; o<CFG.ops; o++){
+	    TM_READ(matrix[val+o]);
+	    }*/
+	  for(uint o=0; o<CFG.ops; o++){
+	    //TM_WRITE(matrix[val], TM_READ(matrix[val])+1);
+	    matrix[val]++;
+	  }
+	} TM_END;
+	
+      }
+	
+      /*
         int snapshot[1024];
         uint32_t loc[1024];
         for (uint32_t i = 0; i < CFG.ops; ++i) {
@@ -73,13 +108,15 @@ int bench_test(uintptr_t, uint32_t* seed)
         for (uint32_t i = 0; i < CFG.ops; ++i) {
             TM_WRITE(matrix[loc[i]], 1 + snapshot[i]);
         }
-    } TM_END;
-    *seed = local_seed;
+	} TM_END;*/
+      //*seed = local_seed;
     return 0;
 }
 
 /*** Ensure the final state of the benchmark satisfies all invariants */
-bool bench_verify() { return true; }
+bool bench_verify() { 
+  std::cout << sum << std::endl;
+return true; }
 
 /**
  *  Step 4:

@@ -34,8 +34,9 @@ set(
   ReadWriteNBench
   ReadNWrite1Bench
   VectorBench
-  BtreeBench
-  STLVectorBench)
+  BtreeBench)
+
+#  STLVectorBench)
 
 append_cxx_flags(${CMAKE_THREAD_INCLUDE})
 
@@ -55,8 +56,8 @@ if (bench_enable_single_source)
     foreach (arch ${rstm_archs})
       add_stm_executable(exec "${bench}SSB" ${arch} btree.cpp ${bench}.cpp)
       target_link_libraries(${exec} ${CMAKE_THREAD_LIBS_INIT})
-      target_link_libraries(${exec} ksnap)
-      target_link_libraries(${exec} sit)
+      target_link_libraries(${exec} sitevm)
+      target_link_libraries(${exec} dune)
       add_target_definitions(${exec} SINGLE_SOURCE_BUILD)
     endforeach ()
   endforeach ()
@@ -107,8 +108,8 @@ if (CMAKE_CXX-tm_COMPILER)
         # now, if necessary.
         if (CMAKE_SYSTEM_NAME MATCHES "Linux")
           target_link_libraries(${exec} rt)
-          target_link_libraries(${exec} ksnap)
-          target_link_libraries(${exec} sit)
+          target_link_libraries(${exec} dune)
+          target_link_libraries(${exec} sitevm)
         endif ()
       endif ()
 

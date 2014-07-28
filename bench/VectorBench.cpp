@@ -53,7 +53,7 @@ uint32_t *array;
 /*** Initialize the counter */
 void bench_init()
 {
-  array = (uint32_t*)hcmalloc(sizeof(int)*CFG.elements);
+  array = (uint32_t*)sitemalloc(sizeof(int)*CFG.elements);
   //SET->DListInit();
     // warm up the datastructure
   /*, 2, 6, 0TM_BEGIN_FAST_INITIALIZATION();

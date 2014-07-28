@@ -278,39 +278,47 @@ MAIN(argc, argv)
     long maxDataLength = global_params[PARAM_LENGTH];
     long numFlow       = global_params[PARAM_NUM];
     long randomSeed    = global_params[PARAM_SEED];
+    dictionary_t* dictionaryPtr;
+    stream_t* streamPtr;
+    long numAttack;
+    decoder_t* decoderPtr;
+    vector_t** errorVectors;
+    long i;
+    arg_t arg;
+    
     printf("Percent attack  = %li\n", percentAttack);
     printf("Max data length = %li\n", maxDataLength);
     printf("Num flow        = %li\n", numFlow);
     printf("Random seed     = %li\n", randomSeed);
 
-    dictionary_t* dictionaryPtr = dictionary_alloc();
+    TM_THREAD_ENTER();
+    TM_BEGIN();
+    dictionaryPtr = dictionary_alloc();
     assert(dictionaryPtr);
-    stream_t* streamPtr = stream_alloc(percentAttack);
+    streamPtr= stream_alloc(percentAttack);
     assert(streamPtr);
-    long numAttack = stream_generate(streamPtr,
+    numAttack = stream_generate(streamPtr,
                                      dictionaryPtr,
                                      numFlow,
                                      randomSeed,
                                      maxDataLength);
     printf("Num attack      = %li\n", numAttack);
 
-    decoder_t* decoderPtr = decoder_alloc();
+    decoderPtr= decoder_alloc();
     assert(decoderPtr);
 
-    vector_t** errorVectors = (vector_t**)SEQ_MALLOC(numThread * sizeof(vector_t*));
+    errorVectors = (vector_t**)SEQ_MALLOC(numThread * sizeof(vector_t*));
     assert(errorVectors);
-    long i;
     for (i = 0; i < numThread; i++) {
         vector_t* errorVectorPtr = vector_alloc(numFlow);
         assert(errorVectorPtr);
         errorVectors[i] = errorVectorPtr;
     }
-
-    arg_t arg;
+  
     arg.streamPtr    = streamPtr;
     arg.decoderPtr   = decoderPtr;
     arg.errorVectors = errorVectors;
-
+  TM_END();
     /*
      * Run transactions
      */

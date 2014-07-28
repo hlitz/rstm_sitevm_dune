@@ -91,6 +91,23 @@
 #  define MAP_INSERT(map, key, data)  hashtable_insert(map, (void*)(key), (void*)(data))
 #  define MAP_REMOVE(map, key)        hashtable_remove(map, (void*)(key))
 
+#elif defined(MAP_USE_RBTRE_NOT_THIS_TIME)
+
+#  include "btree.h"
+
+#  define MAP_T                       btree
+#  define MAP_ALLOC(hash, cmp)        btree_alloc()
+#  define MAP_FREE(map)               btree_free()
+#  define MAP_CONTAINS(map, key)      btree_contains(map, (void*)(key))
+#  define MAP_FIND(map, key)          btree_find(map, (void*)(key))
+#  define MAP_INSERT(map, key, data)  btree_insert(map, (void*)(key), (void*)(data))
+#  define MAP_REMOVE(map, key)        btree_remove(map, (void*)(key))
+
+#  define TMMAP_CONTAINS(map, key)      btree_contains(map, (void*)(key))
+#  define TMMAP_FIND(map, key)          btree_find(map, (void*)(key))
+#  define TMMAP_INSERT(map, key, data)  btree_insert(map, (void*)(key), (void*)(data))
+#  define TMMAP_REMOVE(map, key)        btree_remove(map, (void*)(key))
+
 #elif defined(MAP_USE_ATREE)
 
 #  include "atree.h"

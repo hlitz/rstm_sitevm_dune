@@ -17,7 +17,6 @@
 #include "algs/algs.hpp"
 #include "inst.hpp"
 #include <fstream>
-#include "sit_seg.h"
 
 //#include "stm/lib_hicamp.h"
 
@@ -186,12 +185,12 @@ namespace stm
   /*** the init factory */
   void TxThread::thread_init()
   {
-      // multiple inits from one thread do not cause trouble
-      if (Self) return;
-
-      // create a TxThread and save it in thread-local storage
-      Self = new TxThread();
-      sit_thread::sit_thread_init();
+    // multiple inits from one thread do not cause trouble
+    if (Self) return;
+    
+    // create a TxThread and save it in thread-local storage
+    Self = new TxThread();
+    sitevm_enter();
   }
 
   /**
@@ -214,9 +213,10 @@ namespace stm
    */
   void sys_shutdown()
   {
-      static volatile unsigned int mtx = 0;
-      sit_thread::sit_thread_shutdown();
-      /*
+    static volatile unsigned int mtx = 0;
+      
+      //sit_thread::sit_thread_shutdown();
+      
       while (!bcas32(&mtx, 0u, 1u)) { }
 
       uint64_t nontxn_count = 0;                // time outside of txns
@@ -238,7 +238,7 @@ namespace stm
       }
       txn_count = rw_txns + ro_txns;
       pct_ro = (!txn_count) ? 0 : (100 * ro_txns) / txn_count;
-      */
+      
       /* std::ofstream myfile, myfiletxn;
       myfile.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews.txt");
       myfiletxn.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews_txn.txt");
@@ -410,7 +410,9 @@ namespace stm
   void sys_init(stm::AbortHandler conflict_abort_handler)
   {
       static volatile uint32_t mtx = 0;
-
+      //sit_thread::sit_thread_init();
+      //sitevm::sitevm_init();
+      sitevm_init();
       if (bcas32(&mtx, 0u, 1u)) {
           // manually register all behavior policies that we support.  We do
           // this via tail-recursive template metaprogramming

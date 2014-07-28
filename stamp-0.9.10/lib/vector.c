@@ -88,12 +88,12 @@ vector_alloc (long initCapacity)
     vector_t* vectorPtr;
     long capacity = MAX(initCapacity, 1);
  
-    vectorPtr = (vector_t*)SEQ_MALLOC(sizeof(vector_t));
+    vectorPtr = (vector_t*)malloc(sizeof(vector_t));
 
     if (vectorPtr != NULL) {
         vectorPtr->size = 0;
         vectorPtr->capacity = capacity;
-        vectorPtr->elements = (void**)SEQ_MALLOC(capacity * sizeof(void*));
+        vectorPtr->elements = (void**)malloc(capacity * sizeof(void*));
         if (vectorPtr->elements == NULL) {
             return NULL;
         }
@@ -114,12 +114,12 @@ Pvector_alloc (long initCapacity)
     vector_t* vectorPtr;
     long capacity = MAX(initCapacity, 1);
 
-    vectorPtr = (vector_t*)P_MALLOC(sizeof(vector_t));
+    vectorPtr = (vector_t*)malloc(sizeof(vector_t));
 
     if (vectorPtr != NULL) {
         vectorPtr->size = 0;
         vectorPtr->capacity = capacity;
-        vectorPtr->elements = (void**)P_MALLOC(capacity * sizeof(void*));
+        vectorPtr->elements = (void**)malloc(capacity * sizeof(void*));
         if (vectorPtr->elements == NULL) {
             return NULL;
         }
@@ -180,7 +180,7 @@ vector_pushBack (vector_t* vectorPtr, void* dataPtr)
     if (vectorPtr->size == vectorPtr->capacity) {
         long i;
         long newCapacity = vectorPtr->capacity * 2;
-        void** newElements = (void**)SEQ_MALLOC(newCapacity * sizeof(void*));
+        void** newElements = (void**)malloc(newCapacity * sizeof(void*));
         if (newElements == NULL) {
             return FALSE;
         }
@@ -209,7 +209,7 @@ Pvector_pushBack (vector_t* vectorPtr, void* dataPtr)
     if (vectorPtr->size == vectorPtr->capacity) {
         long i;
         long newCapacity = vectorPtr->capacity * 2;
-        void** newElements = (void**)P_MALLOC(newCapacity * sizeof(void*));
+        void** newElements = (void**)malloc(newCapacity * sizeof(void*));
         if (newElements == NULL) {
             return FALSE;
         }
@@ -291,7 +291,7 @@ vector_copy (vector_t* dstVectorPtr, vector_t* srcVectorPtr)
     long srcSize = srcVectorPtr->size;
     if (dstCapacity < srcSize) {
         long srcCapacity = srcVectorPtr->capacity;
-        void** elements = (void**)SEQ_MALLOC(srcCapacity * sizeof(void*));
+        void** elements = (void**)malloc(srcCapacity * sizeof(void*));
         if (elements == NULL) {
             return FALSE;
         }
@@ -320,7 +320,7 @@ Pvector_copy (vector_t* dstVectorPtr, vector_t* srcVectorPtr)
     long srcSize = srcVectorPtr->size;
     if (dstCapacity < srcSize) {
         long srcCapacity = srcVectorPtr->capacity;
-        void** elements = (void**)P_MALLOC(srcCapacity * sizeof(void*));
+        void** elements = (void**)malloc(srcCapacity * sizeof(void*));
         if (elements == NULL) {
             return FALSE;
         }

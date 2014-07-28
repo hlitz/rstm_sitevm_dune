@@ -21,7 +21,7 @@ BTREE btree_Create(size_t size, int (*cmp)(const void *, const void *))
 {
   BTREE ret;
 
-  ret = (BTREE)hcmalloc(sizeof(struct _btree_struct));
+  ret = (BTREE)sitemalloc(sizeof(struct _btree_struct));
   if (ret) {
     ret->root = NULL;
     ret->node_size = sizeof(struct node);
@@ -281,7 +281,7 @@ int btree_Delete(BTREE tree, void *data)
   if (node != remove) {
     data_copy(tree, data(tree, node), data(tree, remove));
   }
-  hcfree(node);
+  sitefree(node);
   return 0;
 }
 
@@ -292,7 +292,7 @@ void btree_Destroy(BTREE tree)
   if (root(tree)) {
     node_Close(root(tree));
   }
-  hcfree(tree);
+  sitefree(tree);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -304,7 +304,7 @@ static void node_Close(btnode node)
   if (right(node)) {
     node_Close(right(node));
   }
-  hcfree(node);
+  sitefree(node);
 }
 
  
@@ -313,7 +313,7 @@ static btnode node_Make(BTREE tree, void *data)
 {
   btnode ret;
 
-  ret = (btnode)hcmalloc(node_size(tree) + elem_size(tree));
+  ret = (btnode)sitemalloc(node_size(tree) + elem_size(tree));
 
   if (ret) {
     data_copy(tree, data(tree, ret), data);

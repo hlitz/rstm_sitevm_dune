@@ -27,6 +27,8 @@ namespace stm
       tx->tmread_promo     = stms[new_alg].read_promo;
       tx->tmwrite    = stms[new_alg].write;
       tx->tmcommit   = stms[new_alg].commit;
+      tx->tmsite_update = stms[new_alg].site_update;
+      tx->tmsite_commit = stms[new_alg].site_commit;
   }
 
   /**
@@ -70,6 +72,8 @@ namespace stm
           threads[i]->tmwrite    = stms[new_alg].write;
           threads[i]->tmcommit   = stms[new_alg].commit;
           threads[i]->consec_aborts  = 0;
+	  threads[i]->tmsite_update = stms[new_alg].site_update;
+	  threads[i]->tmsite_commit = stms[new_alg].site_commit;
       }
 
       TxThread::tmrollback = stms[new_alg].rollback;

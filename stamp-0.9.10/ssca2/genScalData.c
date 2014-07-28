@@ -764,8 +764,8 @@ genScalData_seq (graphSDG* SDGdataPtr)
 }
 
 void genScalDataAlloc(){
-  global_edgeNum = (long*)hcmalloc(sizeof(long));
-  global_numStrWtEdges = (ULONGINT_T*)hcmalloc(sizeof(ULONGINT_T));
+  global_edgeNum = (long*)sitemalloc(sizeof(long));
+  global_numStrWtEdges = (ULONGINT_T*)sitemalloc(sizeof(ULONGINT_T));
 }
 
 /* =============================================================================
@@ -776,7 +776,6 @@ void
 genScalData (void* argPtr)
 {
     TM_THREAD_ENTER();
-    //printf("thread enter\n");
     graphSDG* SDGdataPtr = (graphSDG*)argPtr;
 
     long myId = thread_getId();
@@ -1143,7 +1142,7 @@ genScalData (void* argPtr)
 
     startVertex = global_startVertex;
     endVertex = global_endVertex;
-
+    
     for (i = i_edgeStartCounter[myId]; i < (long)i_edgeEndCounter[myId]; i++) {
         startVertex[i] = startV[i-i_edgeStartCounter[myId]];
         endVertex[i] = endV[i-i_edgeStartCounter[myId]];
@@ -1152,7 +1151,7 @@ genScalData (void* argPtr)
     ULONGINT_T numEdgesPlacedInCliques = edgeNum;
 
     thread_barrier_wait();
-
+    
     /*
      * STEP 3: Connect the cliques
      */

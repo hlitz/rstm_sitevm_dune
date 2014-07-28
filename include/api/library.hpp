@@ -122,6 +122,19 @@ namespace stm
       tx->end_txn_time = tick();
   }
 
+  TM_INLINE
+  inline void site_update(TxThread* tx)
+  {
+    tx->tmsite_update();
+  }
+
+  TM_INLINE
+  inline void site_commit(TxThread* tx)
+  {
+    tx->tmsite_commit();
+  }
+
+
   /**
    *  The STM system provides a message that exits the program (preferable to
    *  'assert(false)').  We use this in the API too, so it needs to be visible
@@ -215,6 +228,8 @@ namespace stm
    *  Abort the current transaction and restart immediately.
    */
   void restart();
+
+
 }
 
 /*** pull in the per-memory-access instrumentation framework */
@@ -226,6 +241,7 @@ namespace stm
  */
 namespace stm
 {
+
   template <typename T>
   inline T stm_read(T* addr, TxThread* thread)
   {
@@ -238,6 +254,12 @@ namespace stm
       return DISPATCH<T, sizeof(T)>::read_promo(addr, thread);
   }
 
+  /*inline void stm_site_update(TxThread* thread)
+  {
+    std::cout << " ggggggggggggggggggggggggggggg" << std::endl;
+      stm::site_update(thread);
+  }
+*/
   template <typename T>
   inline void stm_write(T* addr, T val, TxThread* thread)
   {
@@ -252,7 +274,7 @@ namespace stm
 #define TM_WRITE(var, val) stm::stm_write(&var, val, tx)
 
 #define TM_READ_PROMO(var)       stm::stm_read_promo(&var, tx)
-
+//#define SITE_UPDATE() stm::site_update((stm::TxThread*)STM_SELF)
 /**
  *  This is the way to start a transaction
  */
@@ -293,7 +315,7 @@ namespace stm
 #define TM_ALLOC             stm::tx_alloc
 #define TM_FREE              stm::tx_free
 #define TM_SET_POLICY(P)     stm::set_policy(P)
-#define TM_BECOME_IRREVOC()  stm::becom_irrevoc()
+#define TM_BECOME_IRREVOC()  stm::become_irrevoc()
 #define TM_GET_ALGNAME()     stm::get_algname()
 
 /**

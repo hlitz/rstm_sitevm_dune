@@ -90,6 +90,7 @@
 bitmap_t*
 bitmap_alloc (long numBit)
 {
+  assert(numBit);
     bitmap_t* bitmapPtr;
 
     bitmapPtr = (bitmap_t*)SEQ_MALLOC(sizeof(bitmap_t));
@@ -119,6 +120,7 @@ bitmap_alloc (long numBit)
 bitmap_t*
 Pbitmap_alloc (long numBit)
 {
+  assert(numBit);
     bitmap_t* bitmapPtr;
 
     bitmapPtr = (bitmap_t*)P_MALLOC(sizeof(bitmap_t));

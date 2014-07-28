@@ -115,7 +115,7 @@ extractMoments (float *data, int num_elts, int num_moments)
     int j;
     float* moments;
 
-    moments = (float*)hccalloc(num_moments, sizeof(float));
+    moments = (float*)sitecalloc(num_moments, sizeof(float));
     
     assert(moments);
     for (i = 0; i < num_elts; i++) {
@@ -148,7 +148,7 @@ zscoreTransform (float** data, /* in & out: [numObjects][numAttributes] */
     int i;
     int j;
 
-    single_variable = (float*)hccalloc(numObjects, sizeof(float));
+    single_variable = (float*)sitecalloc(numObjects, sizeof(float));
    
     assert(single_variable);
     for (i = 0; i < numAttributes; i++) {
@@ -190,7 +190,8 @@ cluster_exec (
     int* membership = 0;
     float** tmp_cluster_centres;
     random_t* randomPtr;
-   
+        TM_THREAD_ENTER();
+    TM_BEGIN();
     membership = (int*)SEQ_MALLOC(numObjects * sizeof(int));
     assert(membership);
 
@@ -202,7 +203,7 @@ cluster_exec (
     }
 
     itime = 0;
-
+    TM_END();
     /*
      * From min_nclusters to max_nclusters, find best_nclusters
      */
@@ -218,7 +219,7 @@ cluster_exec (
                                           threshold,
                                           membership,
                                           randomPtr);
-
+	TM_BEGIN();
         {
             if (*cluster_centres) {
                 SEQ_FREE((*cluster_centres)[0]);
@@ -228,13 +229,14 @@ cluster_exec (
             *cluster_centres = tmp_cluster_centres;
             *best_nclusters = nclusters;
         }
-
+	
         itime++;
+	TM_END();
     } /* nclusters */
- 
+    TM_BEGIN();
     SEQ_FREE(membership);
     random_free(randomPtr);
-
+    TM_END();
     return 0;
 }
 

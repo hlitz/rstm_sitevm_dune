@@ -277,8 +277,8 @@ MAIN(argc, argv)
     /*
      * Initialization
      */
-  global_numProcess = (long*)hcmalloc(sizeof(long));
-  global_totalNumAdded = (long*)hcmalloc(sizeof(long));
+  global_numProcess = (long*)sitemalloc(sizeof(long));
+  global_totalNumAdded = (long*)sitemalloc(sizeof(long));
     parseArgs(argc, (char** const)argv);
     SIM_GET_NUM_CPU(global_numThread);
     TM_STARTUP(global_numThread);

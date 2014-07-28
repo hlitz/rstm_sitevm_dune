@@ -156,7 +156,8 @@ void
 client_run (void* argPtr)
 {
     TM_THREAD_ENTER();
-
+    
+   
     long myId = thread_getId();
     client_t* clientPtr = ((client_t**)argPtr)[myId];
 
@@ -168,11 +169,11 @@ client_run (void* argPtr)
     long queryRange             = clientPtr->queryRange;
     long percentUser            = clientPtr->percentUser;
 
-    long* types  = (long*)P_MALLOC(numQueryPerTransaction * sizeof(long));
-    long* ids    = (long*)P_MALLOC(numQueryPerTransaction * sizeof(long));
-    long* ops    = (long*)P_MALLOC(numQueryPerTransaction * sizeof(long));
-    long* prices = (long*)P_MALLOC(numQueryPerTransaction * sizeof(long));
-
+    long* types  = (long*)malloc(numQueryPerTransaction * sizeof(long));
+    long* ids    = (long*)malloc(numQueryPerTransaction * sizeof(long));
+    long* ops    = (long*)malloc(numQueryPerTransaction * sizeof(long));
+    long* prices = (long*)malloc(numQueryPerTransaction * sizeof(long));
+    
     long i;
 
     for (i = 0; i < numOperation; i++) {

@@ -188,7 +188,12 @@ MAIN(argc, argv)
 
     // [RSTM] moved this allocation so that we only allocate after
     //        an MMPolicy has been created
-
+    SIM_GET_NUM_CPU(nthreads);
+    TM_STARTUP(nthreads);
+    P_MEMORY_STARTUP(numThread);
+    TM_THREAD_ENTER();
+    TM_BEGIN();
+   
     line = (char*)SEQ_MALLOC(MAX_LINE_LENGTH); /* reserve memory line */
 
     if (filename == 0) {
@@ -200,8 +205,7 @@ MAIN(argc, argv)
         usage((char*)argv[0]);
     }
 
-    SIM_GET_NUM_CPU(nthreads);
-
+   
     numAttributes = 0;
     numObjects = 0;
 
@@ -275,8 +279,6 @@ MAIN(argc, argv)
         fclose(infile);
     }
 
-    TM_STARTUP(nthreads);
-    thread_startup(nthreads);
     
     /*
      * The core of the clustering
@@ -286,16 +288,19 @@ MAIN(argc, argv)
 
     nloops = 1;
     len = max_nclusters - min_nclusters + 1;
+    TM_END();
+    thread_startup(nthreads);
 
     for (i = 0; i < nloops; i++) {
         /*
          * Since zscore transform may perform in cluster() which modifies the
          * contents of attributes[][], we need to re-store the originals
          */
-        memcpy(attributes[0], buf, (numObjects * numAttributes * sizeof(float)));
-
-        cluster_centres = NULL;
-        cluster_exec(nthreads,
+      TM_BEGIN();
+      memcpy(attributes[0], buf, (numObjects * numAttributes * sizeof(float)));
+      TM_END();
+      cluster_centres = NULL;
+      cluster_exec(nthreads,
                      numObjects,
                      numAttributes,
                      attributes,           /* [numObjects][numAttributes] */

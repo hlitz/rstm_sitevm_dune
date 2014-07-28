@@ -55,7 +55,7 @@ HashTable* SET;
 void bench_init()
 {
   //SET = new HashTable();
-  SET = (HashTable*)hcmalloc(sizeof(HashTable));
+  SET = (HashTable*)sitemalloc(sizeof(HashTable));
   SET->init((CFG.elements));
   std::cout << "startup " << std::endl;
   // warm up the datastructure

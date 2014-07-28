@@ -80,32 +80,44 @@ int startelems = 0;
 void bench_init()
 {
   //    SET = new List();
-  SET = (List*)hcmalloc(sizeof(List));
+  SET = (List*)sitemalloc(sizeof(List));
+ 
+  TM_BEGIN(atomic){//_FAST_INITIALIZATION();
+ 
   new (SET) List();
+
   for(int i=0;i<32;i++){
     elems[i] = 0;
     ielems[i] = 0;
     relems[i] = 0;
   }
+  std::cout << "malloced " << std::endl;
 
   // warm up the datastructure
   //
   // NB: if we switch to CGL, we can initialize without transactions
-  TM_BEGIN(atomic){//_FAST_INITIALIZATION();
     for (uint32_t w = 0; w < CFG.elements; w+=2){
-      startelems++;
-      //if(w%100==0)std::cout << "insert el" << w <<" "<< CFG.elements << std::endl;
+      //startelems++;
+      //std::cout << "insert el" << w <<" "<< CFG.elements << std::endl;
       SET->insert(w TM_PARAM);
     }
   }TM_END;//_FAST_INITIALIZATION();
-  std::cout << "start elems  " << startelems << std::endl;
+  std::cout << "start elems  " << std::dec << startelems << std::endl;
   
 }
-  
+
+void bench_update(){
+  TM_BEGIN(atomic){
+
+    SET->update( TM_PARAM_ALONE);
+  }TM_END;
+}
+ 
+ 
 /*** Run a bunch of increment transactions */
 int bench_test(uintptr_t id, uint32_t* seed)
 {
-  // std::cout << "id " << id << " " <<(uint64_t)(*id) << std::endl;
+  //   std::cout << "id " << id << " " << std::endl;
   //TM_BEGIN(atomic){
   long tid = id;
 
@@ -128,34 +140,43 @@ int bench_test(uintptr_t id, uint32_t* seed)
       else if (act < CFG.inspct) {
 	//bool res = false;
 	uint64_t begin = rdtsc();
+	//std::cout << "----------------START INSERT ---------- tid " << tid << " val " << val <<std::endl;
 	TM_BEGIN(atomic) {
+	  //SET->update(TM_PARAM_ALONE);
 	  res = SET->insert(val TM_PARAM);
 	} TM_END;
 	isum[tid] += (rdtsc()-begin);
 
 	if(res){
-	  //std::cout << "insert el " << val << std::endl; 
+	  //std::cout << "------------------------------------------------------------------------------insert el " << val << " id " << id << std::endl; 
 	  elems[id]++;
 	  ielems[id]++;
 	  *seed = 66;
+	  //std::cout << "----------------END INSERT ---------- tid " << tid <<std::endl;
 	  return 1;
 	}
+	//std::cout << "----------------END INSERT ---------- tid " << tid <<std::endl;
       }
       else {
 	//bool res =false;
 	uint64_t begin = rdtsc();
+	//std::cout << "----------------START REMOVE ---------- tid " << tid << " val " << val <<std::endl;
 	TM_BEGIN(atomic) {
-	res = SET->remove(val TM_PARAM);
+	  //SET->update(TM_PARAM_ALONE);
+	  res = SET->remove(val TM_PARAM);
 	} TM_END;
+
 	rsum[tid] += (rdtsc()-begin);
 
 	if(res){
-	  //std::cout << "remove el " << val << std::endl; 
+	  //	  std::cout << "-------------------------------------------------------------------------------remove el " << val << " id " << id << std::endl; 
 	  elems[id]--;
 	  relems[id]++;
 	  *seed = 77;
+	  //std::cout << "----------------END REMOVE ---------- tid " << tid <<std::endl;
 	  return -1;
 	}
+	//std::cout << "----------------END REMOVE ---------- tid " << tid <<std::endl;
       }
     }
     return 0;
@@ -180,6 +201,12 @@ bool bench_verify() {
     //std::cout << "Thread "<<t<< " lookup time: " << lsum[t] << " insert " << isum[t] << " remove " << rsum[t] << std::endl;
   }
   bool ret = false;
+  TM_BEGIN(atomic){
+    ret = SET->isSane();
+  } TM_END; 
+  TM_BEGIN(atomic){
+    ret = SET->isSane();
+  } TM_END; 
   TM_BEGIN(atomic){
     ret = SET->isSane();
   } TM_END; 

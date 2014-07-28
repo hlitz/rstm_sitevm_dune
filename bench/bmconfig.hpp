@@ -50,6 +50,8 @@ void bench_init();
 /*** Run a bunch of increment transactions */
 int bench_test(uintptr_t, uint32_t*);
 
+void bench_update();
+
 /*** Ensure the final state of the benchmark satisfies all invariants */
 bool bench_verify();
 

@@ -479,6 +479,8 @@ TMnet_isPath (TM_ARGDECL
     bool_t status;
 
     vector_t* nodeVectorPtr = netPtr->nodeVectorPtr;
+    if(visitedBitmapPtr->numBit != vector_getSize(nodeVectorPtr))
+      printf("visitedBitmapptr num bit %i getsize %i ptr %p\n", visitedBitmapPtr->numBit, vector_getSize(nodeVectorPtr), visitedBitmapPtr);
     assert(visitedBitmapPtr->numBit == vector_getSize(nodeVectorPtr));
 
     PBITMAP_CLEARALL(visitedBitmapPtr);
@@ -866,8 +868,8 @@ net_generateRandomEdges (net_t* netPtr,
                          random_t* randomPtr)
 {
     vector_t* nodeVectorPtr = netPtr->nodeVectorPtr;
-
     long numNode = vector_getSize(nodeVectorPtr);
+    printf("bitmap alloc %i %p\n", numNode, nodeVectorPtr);
     bitmap_t* visitedBitmapPtr = bitmap_alloc(numNode);
     assert(visitedBitmapPtr);
     queue_t* workQueuePtr = queue_alloc(-1);

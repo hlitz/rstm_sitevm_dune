@@ -96,6 +96,7 @@ all_countsort_node (long q,
                     long bitOff,
                     long m)
 {
+  TM_THREAD_ENTER();
     long myId = thread_getId();
     long numThread = thread_getNumThread();
 
@@ -254,6 +255,7 @@ all_countsort_node_aux (long q,
                         long bitOff,
                         long m)
 {
+  TM_THREAD_ENTER();
     long myId = thread_getId();
     long numThread = thread_getNumThread();
 
@@ -346,7 +348,8 @@ all_radixsort_node_s3 (long q,
                        unsigned long* lKeys,
                        unsigned long* lSorted)
 {
-    long myId = thread_getId();
+  TM_THREAD_ENTER();
+  long myId = thread_getId();
 
     unsigned long* lTemp = NULL;
 
@@ -383,6 +386,7 @@ all_radixsort_node_s2 (long q,
                        unsigned long* lKeys,
                        unsigned long* lSorted)
 {
+  TM_THREAD_ENTER();
     long myId = thread_getId();
 
     unsigned long* lTemp = NULL;
@@ -451,6 +455,7 @@ all_radixsort_node_aux_s3 (long q,
                            unsigned long* auxKey,
                            unsigned long* auxSorted)
 {
+  TM_THREAD_ENTER();
     long myId = thread_getId();
 
     unsigned long* lTemp  = NULL;

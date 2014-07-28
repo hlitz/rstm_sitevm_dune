@@ -234,7 +234,7 @@ initializeManager ()
     assert(managerPtr != NULL);
 
     numRelation = (long)global_params[PARAM_RELATIONS];
-    ids = (long*)SEQ_MALLOC(numRelation * sizeof(long));
+    ids = (long*)malloc(numRelation * sizeof(long));
     for (i = 0; i < numRelation; i++) {
         ids[i] = i + 1;
     }
@@ -410,6 +410,18 @@ freeClients (client_t** clients)
         client_free(clientPtr);
     }
 }
+inline uint64_t rdtsc()
+{
+    uint32_t lo, hi;
+    __asm__ __volatile__ (
+      "xorl %%eax, %%eax\n"
+      "cpuid\n"
+      "rdtscp\n"
+      : "=a" (lo), "=d" (hi)
+      :
+      : "%ebx", "%ecx" );
+    return (uint64_t)hi << 32 | lo;
+}
 
 
 /* =============================================================================
@@ -427,18 +439,23 @@ MAIN(argc, argv)
     parseArgs(argc, (char** const)argv);
     SIM_GET_NUM_CPU(global_params[PARAM_CLIENTS]);
 
+    long numThread = global_params[PARAM_CLIENTS];
+    TM_STARTUP(numThread);
+    P_MEMORY_STARTUP(numThread);
+    TM_THREAD_ENTER();
+   
+    //sit_thread::sit_thread_barrier_wait(3);
+    TM_BEGIN();
     managerPtr = initializeManager();
     assert(managerPtr != NULL);
     clients = initializeClients(managerPtr);
     assert(clients != NULL);
-
-    long numThread = global_params[PARAM_CLIENTS];
-    TM_STARTUP(numThread);
-    P_MEMORY_STARTUP(numThread);
+    TM_END();
+    //    sit_thread::sit_thread_barrier_wait(4);
     thread_startup(numThread);
 
     /* Run transactions */
-    printf("Running clients... ");
+    printf("Running clients...\n ");
     fflush(stdout);
     //GOTO_SIM();
     //TIMER_READ(start);

@@ -82,9 +82,54 @@ static ULONGINT_T*  global_impliedEdgeList   = NULL;
 static ULONGINT_T** global_auxArr            = NULL;
 
 void
-computeGraphAlloc(){
-  global_maxNumVertices = (ULONGINT_T*)hcmalloc(sizeof(ULONGINT_T));
-  global_outVertexListSize = (ULONGINT_T*)hcmalloc(sizeof(ULONGINT_T));
+computeGraphAlloc(void* argPtr){
+  graph*    GPtr       = ((computeGraph_arg_t*)argPtr)->GPtr;
+ graphSDG* SDGdataPtr = ((computeGraph_arg_t*)argPtr)->SDGdataPtr;
+     
+  long numThread = thread_getNumThread();
+  global_maxNumVertices = (ULONGINT_T*)sitemalloc(sizeof(ULONGINT_T));
+  ULONGINT_T maxNumVertices = 0;
+
+  ULONGINT_T numEdgesPlaced = SDGdataPtr->numEdgesPlaced;
+  //if(myId==0) getchar();
+  /*
+   * First determine the number of vertices by scanning the tuple
+   * startVertex list
+   */
+
+  long i;
+  long i_start;
+  long i_stop;
+  int myId =0;
+  createPartition(0, numEdgesPlaced, myId, numThread, &i_start, &i_stop);
+
+  for (i = i_start; i < i_stop; i++) {
+    if (SDGdataPtr->startVertex[i] > maxNumVertices) {
+      maxNumVertices = SDGdataPtr->startVertex[i];
+    }
+  }
+  for (i = i_start; i < i_stop; i++) {
+    if (SDGdataPtr->startVertex[i] > maxNumVertices) {
+      maxNumVertices = SDGdataPtr->startVertex[i];
+    }
+  }
+  
+  //TM_BEGIN();
+  long tmp_maxNumVertices = *global_maxNumVertices;
+  long new_maxNumVertices = MAX((unsigned long)tmp_maxNumVertices, maxNumVertices) + 1;
+  *global_maxNumVertices =  (unsigned long)new_maxNumVertices;
+  GPtr->numVertices = *global_maxNumVertices;
+  
+  //TM_END();
+  
+  //    thread_barrier_wait();
+    
+
+  global_outVertexListSize = (ULONGINT_T*)sitemalloc(sizeof(ULONGINT_T));
+  global_p = (ULONGINT_T*)P_MALLOC(NOSHARE(numThread) * sizeof(ULONGINT_T));
+  global_impliedEdgeList = (ULONGINT_T*)P_MALLOC(GPtr->numVertices* MAX_CLUSTER_SIZE* sizeof(ULONGINT_T));
+  global_auxArr = (ULONGINT_T**)P_MALLOC(GPtr->numVertices * sizeof(ULONGINT_T*));
+   
 }
 
 /* =============================================================================
@@ -94,25 +139,26 @@ computeGraphAlloc(){
 static void
 prefix_sums (ULONGINT_T* result, LONGINT_T* input, ULONGINT_T arraySize)
 {
+  TM_THREAD_ENTER();
     long myId = thread_getId();
     long numThread = thread_getNumThread();
-
     ULONGINT_T* p = NULL;
-    if (myId == 0) {
+    /*    if (myId == 0) {
+      //TM_BEGIN();
         p = (ULONGINT_T*)P_MALLOC(NOSHARE(numThread) * sizeof(ULONGINT_T));
 	
         assert(p);
         global_p = p;
+	//TM_END();
     }
-
+    */
     thread_barrier_wait();
-
     p = global_p;
-
     long start;
     long end;
 
     long r = arraySize / numThread;
+    
     start = myId * r + 1;
     end = (myId + 1) * r;
     if (myId == (numThread - 1)) {
@@ -123,11 +169,11 @@ prefix_sums (ULONGINT_T* result, LONGINT_T* input, ULONGINT_T arraySize)
     for (j = start; j < end; j++) {
         result[j] = input[j-1] + result[j-1];
     }
-
+    
     p[NOSHARE(myId)] = result[end-1];
-
+    
     thread_barrier_wait();
-
+    
     if (myId == 0) {
         for (j = 1; j < numThread; j++) {
             p[NOSHARE(j)] += p[NOSHARE(j-1)];
@@ -140,7 +186,7 @@ prefix_sums (ULONGINT_T* result, LONGINT_T* input, ULONGINT_T arraySize)
         ULONGINT_T add_value = p[NOSHARE(myId-1)];
         for (j = start-1; j < end; j++) {
             result[j] += add_value;
-        }
+	}
     }
 
     thread_barrier_wait();
@@ -159,17 +205,20 @@ void
 computeGraph (void* argPtr)
 {
     TM_THREAD_ENTER();
-
+    thread_barrier_wait();
+  
     graph*    GPtr       = ((computeGraph_arg_t*)argPtr)->GPtr;
     graphSDG* SDGdataPtr = ((computeGraph_arg_t*)argPtr)->SDGdataPtr;
-
     long myId = thread_getId();
     long numThread = thread_getNumThread();
-
+ 
+  
     ULONGINT_T j;
-    ULONGINT_T maxNumVertices = 0;
-    ULONGINT_T numEdgesPlaced = SDGdataPtr->numEdgesPlaced;
 
+    ULONGINT_T maxNumVertices = 0;
+    
+    ULONGINT_T numEdgesPlaced = SDGdataPtr->numEdgesPlaced;
+    //if(myId==0) getchar();
     /*
      * First determine the number of vertices by scanning the tuple
      * startVertex list
@@ -178,14 +227,14 @@ computeGraph (void* argPtr)
     long i;
     long i_start;
     long i_stop;
-    createPartition(0, numEdgesPlaced, myId, numThread, &i_start, &i_stop);
+    /*  createPartition(0, numEdgesPlaced, myId, numThread, &i_start, &i_stop);
 
     for (i = i_start; i < i_stop; i++) {
         if (SDGdataPtr->startVertex[i] > maxNumVertices) {
             maxNumVertices = SDGdataPtr->startVertex[i];
         }
     }
-
+    
     TM_BEGIN();
     long tmp_maxNumVertices = (long)TM_SHARED_READ_L(*global_maxNumVertices);
     long new_maxNumVertices = MAX((unsigned long)tmp_maxNumVertices, maxNumVertices) + 1;
@@ -193,9 +242,8 @@ computeGraph (void* argPtr)
     TM_END();
 
     thread_barrier_wait();
-
+    */
     maxNumVertices = *global_maxNumVertices;
-
     if (myId == 0) {
 
         GPtr->numVertices = maxNumVertices;
@@ -218,19 +266,18 @@ computeGraph (void* argPtr)
 
         GPtr->outVertexIndex =
             (ULONGINT_T*)P_MALLOC((GPtr->numVertices) * sizeof(ULONGINT_T));
-	
-        assert(GPtr->outVertexIndex);
+	assert(GPtr->outVertexIndex);
     }
 
     thread_barrier_wait();
-
+    
     createPartition(0, GPtr->numVertices, myId, numThread, &i_start, &i_stop);
 
     for (i = i_start; i < i_stop; i++) {
         GPtr->outDegree[i] = 0;
         GPtr->outVertexIndex[i] = 0;
     }
-
+    
     ULONGINT_T outVertexListSize = 0;
 
     thread_barrier_wait();
@@ -301,9 +348,9 @@ computeGraph (void* argPtr)
     thread_barrier_wait();
 
     prefix_sums(GPtr->outVertexIndex, GPtr->outDegree, GPtr->numVertices);
-
+    
     thread_barrier_wait();
-
+    
     TM_BEGIN();
     TM_SHARED_WRITE_L(
         *global_outVertexListSize,
@@ -312,7 +359,7 @@ computeGraph (void* argPtr)
     TM_END();
 
     thread_barrier_wait();
-
+ 
     outVertexListSize = *global_outVertexListSize;
 
     if (myId == 0) {
@@ -329,7 +376,7 @@ computeGraph (void* argPtr)
     }
 
     thread_barrier_wait();
-
+   
     /*
      * Evaluate outVertexList
      */
@@ -402,7 +449,7 @@ computeGraph (void* argPtr)
         }
 
     } /* for i */
-
+ 
     thread_barrier_wait();
 
     if (myId == 0) {
@@ -427,51 +474,49 @@ computeGraph (void* argPtr)
 
     /* A temp. array to store the inplied edges */
     ULONGINT_T* impliedEdgeList;
-    if (myId == 0) {
+    /*if (myId == 0) {
         impliedEdgeList = (ULONGINT_T*)P_MALLOC(GPtr->numVertices
                                                 * MAX_CLUSTER_SIZE
                                                 * sizeof(ULONGINT_T));
 	
         global_impliedEdgeList = impliedEdgeList;
-    }
+	}*/
 
     thread_barrier_wait();
 
     impliedEdgeList = global_impliedEdgeList;
-
+    //printf("implied edge list %p\n", impliedEdgeList);
     createPartition(0,
                     (GPtr->numVertices * MAX_CLUSTER_SIZE),
                     myId,
                     numThread,
                     &i_start,
                     &i_stop);
-
     for (i = i_start; i < i_stop; i++) {
         impliedEdgeList[i] = 0;
     }
-
     /*
      * An auxiliary array to store implied edges, in case we overshoot
      * MAX_CLUSTER_SIZE
      */
 
     ULONGINT_T** auxArr;
-    if (myId == 0) {
+    /*if (myId == 0) {
         auxArr = (ULONGINT_T**)P_MALLOC(GPtr->numVertices * sizeof(ULONGINT_T*));
 	
         assert(auxArr);
         global_auxArr = auxArr;
-    }
+	}*/
 
     thread_barrier_wait();
 
     auxArr = global_auxArr;
 
     createPartition(0, GPtr->numVertices, myId, numThread, &i_start, &i_stop);
-
     for (i = i_start; i < i_stop; i++) {
         /* Inspect adjacency list of vertex i */
-        for (j = GPtr->outVertexIndex[i];
+      
+      for (j = GPtr->outVertexIndex[i];
              j < (GPtr->outVertexIndex[i] + GPtr->outDegree[i]);
              j++)
         {
@@ -486,6 +531,7 @@ computeGraph (void* argPtr)
                 }
             }
             if (k == GPtr->outVertexIndex[v]+GPtr->outDegree[v]) {
+	      
                 TM_BEGIN();
                 /* Add i to the impliedEdgeList of v */
                 long inDegree = (long)TM_SHARED_READ_L(GPtr->inDegree[v]);

@@ -28,8 +28,6 @@
 #include <stm/config.h>
 #include "stm/MiniVector.hpp"
 #include "stm/metadata.hpp"
-#include <iostream>
-#include <vector>
 #include "stm/lib_sitevm.h"
 
 namespace stm
@@ -82,12 +80,11 @@ namespace stm
       limbo_t* limbo;
 
       /*** List of objects to delete if the current transaction commits */
-      //AddressList frees;
-    std::vector<uint64_t> frees;
+      AddressList frees;
+
       /*** List of objects to delete if the current transaction aborts */
-      //AddressList allocs;
-    std::vector<uint64_t> allocs;
-    uint32_t tid;
+      AddressList allocs;
+
       /**
        *  Schedule a pointer for reclamation.  Reclamation will not happen
        *  until enough time has passed.
@@ -119,7 +116,7 @@ namespace stm
        *  at initialization.
        */
       WBMMPolicy()
-	: prelimbo(new limbo_t()), limbo(NULL)//, frees(128), allocs(128)
+          : prelimbo(new limbo_t()), limbo(NULL), frees(128), allocs(128)
       { }
 
       /**
@@ -127,34 +124,24 @@ namespace stm
        *  need the TxThread to inform the allocator of its id from within the
        *  constructor, via this method.
        */
-    void setID(uint32_t id) { tid = id; my_ts = &trans_nums[id].val; }
-    
+      void setID(uint32_t id) { my_ts = &trans_nums[id].val; }
 
       /*** Wrapper to thread-specific allocator for allocating memory */
       void* txAlloc(size_t const &size)
       {
-
-          void* ptr = hcmalloc(size);
+          void* ptr = sitemalloc(size);
           if ((*my_ts)&1)
-	    allocs.push_back((uint64_t)ptr);//insert(ptr);
-	  //AddressList::iterator i, e;
-	  //for (i = allocs.begin(), e = allocs.end(); i != e; ++i)
-	  //if(tid==1)  std::cout << "txalloc: " << *(allocs.end()) << " " << "begin memaddr: " <<&(*(allocs.begin())) << " tid: " << tid << " size: " << allocs.size() << std::endl;
-
+              allocs.insert(ptr);
           return ptr;
       }
 
       /*** Wrapper to thread-specific allocator for freeing memory */
       void txFree(void* ptr)
       {
-	if ((*my_ts)&1){
-	  //std::cout << "shed for reclaim " << ptr << std::endl;
-	    frees.push_back((uint64_t)ptr);//insert(ptr);
-	}
-	else{
-	    //std::cout << "WB txFree adr " << ptr<< std::endl;
-	    hcfree(ptr);
-	  }
+          if ((*my_ts)&1)
+              frees.insert(ptr);
+          else
+              sitefree(ptr);
       }
 
       /*** On begin, move to an odd epoch and start logging */
@@ -163,36 +150,23 @@ namespace stm
       /*** On abort, unroll allocs, clear lists, exit epoch */
       void onTxAbort()
       {
-	
-	//if(tid==1) std::cout << "ontxabort: "<<allocs.size()<< " tid: " << tid << " beginptr: " << &(*(allocs.begin())) << std::endl;
-	
-        if(allocs.size()>0){
-
-	  //Ad i, e;
-          for (std::vector<uint64_t>::iterator i = allocs.begin() /*,e = allocs.end()*/; i <allocs.end()/*!=e*/; i++){
-	    //std::cout << "WBonTxAbort freein adr " << *i << std::endl;
-	    hcfree((void*)*i);
-	  }
-	}
-	frees.clear();//reset();
-	//allocs.reset();
-	allocs.clear();
-	*my_ts = 1+*my_ts;
+          AddressList::iterator i, e;
+          for (i = allocs.begin(), e = allocs.end(); i != e; ++i)
+              sitefree(*i);
+          frees.reset();
+          allocs.reset();
+          *my_ts = 1+*my_ts;
       }
 
       /*** On commit, perform frees, clear lists, exit epoch */
       void onTxCommit()
       {
-	//AddressList::iterator i, e;
-	for (std::vector<uint64_t>::iterator i = frees.begin()/*, e = frees.end()*/; i<frees.end() /*!= e*/; i++)
-	  schedForReclaim((void*)*i);
-	
-	//if(tid==1) std::cout << "ontxcommit: "<<allocs.size()<< " tid: " << tid << std::endl;
-
-	frees.clear();//reset();
-	//allocs.reset();
-	allocs.clear();
-	*my_ts = 1+*my_ts;
+          AddressList::iterator i, e;
+          for (i = frees.begin(), e = frees.end(); i != e; ++i)
+              schedForReclaim(*i);
+          frees.reset();
+          allocs.reset();
+          *my_ts = 1+*my_ts;
       }
   }; // class stm::WBMMPolicy
 

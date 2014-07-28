@@ -56,7 +56,7 @@ int startelems = 0;
 void bench_init()
 {
   TM_BEGIN(atomic){
-  SET = (DList*)hcmalloc(sizeof(DList));
+  SET = (DList*)sitemalloc(sizeof(DList));
   new (SET) DList();
   //std::cout << "malloced list " << std::endl;
   //    SET = new DList();

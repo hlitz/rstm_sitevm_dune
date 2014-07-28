@@ -248,6 +248,7 @@ MAIN(argc, argv)
     TM_STARTUP(numThread);
     P_MEMORY_STARTUP(numThread);
     thread_startup(numThread);
+    TM_THREAD_ENTER();
 
     printf("Random seed                = %li\n", randomSeed);
     printf("Number of vars             = %li\n", numVar);
@@ -266,13 +267,21 @@ MAIN(argc, argv)
     printf("Generating data... ");
     fflush(stdout);
 
-    random_t* randomPtr = random_alloc();
+    random_t* randomPtr; 
+    data_t* dataPtr;
+    net_t* netPtr;
+    adtree_t* adtreePtr;
+    float actualScore;
+    learner_t* learnerPtr;
+
+    TM_BEGIN();
+    randomPtr= random_alloc();
     assert(randomPtr);
     random_seed(randomPtr, randomSeed);
 
-    data_t* dataPtr = data_alloc(numVar, numRecord, randomPtr);
+    dataPtr = data_alloc(numVar, numRecord, randomPtr);
     assert(dataPtr);
-    net_t* netPtr = data_generate(dataPtr, -1, maxNumParent, percentParent);
+    netPtr= data_generate(dataPtr, -1, maxNumParent, percentParent);
     puts("done.");
     fflush(stdout);
 
@@ -280,7 +289,7 @@ MAIN(argc, argv)
      * Generate adtree
      */
 
-    adtree_t* adtreePtr = adtree_alloc();
+    adtreePtr = adtree_alloc();
     assert(adtreePtr);
 
     printf("Generating adtree... ");
@@ -304,16 +313,16 @@ MAIN(argc, argv)
      * Score original network
      */
 
-    float actualScore = score(netPtr, adtreePtr);
+    actualScore = score(netPtr, adtreePtr);
     net_free(netPtr);
 
     /*
      * Learn structure of Bayesian network
      */
-    learner_t* learnerPtr = learner_alloc(dataPtr, adtreePtr, numThread);
+    learnerPtr = learner_alloc(dataPtr, adtreePtr, numThread);
     assert(learnerPtr);
     data_free(dataPtr); /* save memory */
-
+    TM_END();
     printf("Learning structure...");
     fflush(stdout);
 

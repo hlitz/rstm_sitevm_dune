@@ -19,9 +19,9 @@
 #include <common/platform.hpp>
 #include <common/locks.hpp>
 #include "bmconfig.hpp"
-#include "sit_seg.h"
-#include "sit_malloc.h"
-#include "sit_thread.h"
+#include "sitevm/sitevm.h"
+#include "sitevm/sitevm_malloc.h"
+//#include "sit_thread.h"
 
 using std::string;
 using std::cout;
@@ -126,6 +126,7 @@ nontxnwork()
 
 /*** Signal handler to end a test */
 extern "C" void catch_SIGALRM(int) {
+  std::cout << "alarm!! "<<std::endl;
     CFG.running = false;
 }
 
@@ -138,14 +139,16 @@ barrier(uint32_t which)
 {
   
   static volatile bool initialized = false;
-  if(!initialized){
-    barriers = (uint32_t*)hccalloc(16,sizeof(uint32_t));
+  /*if(!initialized){
+    barriers = (uint32_t*)malloc(16*sizeof(uint32_t));
     initialized = true;
-  }
+  }*/
+    static volatile uint32_t barriers[16] = {0};
+    std::cout << barriers[which] << " bar thresds " << CFG.threads << " barrier number " << which << std::endl; 
+
     CFENCE;
     fai32(&barriers[which]);
-    while (barriers[which] != CFG.threads) { 
-      std::cout << barriers[which] << " bar thresds " << CFG.threads << std::endl; }
+    while (barriers[which] != CFG.threads) { }
     CFENCE;
 }
 
@@ -156,10 +159,12 @@ run(uintptr_t id)
 
     // create a transactional context (repeat calls from thread 0 are OK)
     TM_THREAD_INIT();
+    printf("thread init \n");
     int32_t inserts = 0;
     // wait until all threads created, then set alarm and read timer
-    //barrier(0);
-    sit_thread::sit_thread_barrier_wait(0);
+    barrier(0);
+    printf("after barrier\n");
+    //sit_thread::sit_thread_barrier_wait(0);
         if (id == 0) {
         if (!CFG.execute) {
             signal(SIGALRM, catch_SIGALRM);
@@ -169,8 +174,8 @@ run(uintptr_t id)
     }
 
     // wait until read of start timer finishes, then start transactios
-    //barrier(1);
-    sit_thread::sit_thread_barrier_wait(1);
+    barrier(1);
+    //sit_thread::sit_thread_barrier_wait(1);
     uint32_t count = 0;
     uint32_t seed = id; // not everyone needs a seed, but we have to support it
     if (!CFG.execute) {
@@ -188,6 +193,7 @@ run(uintptr_t id)
       // run fixed number of txns
         for (uint32_t e = 0; e < CFG.execute; e++) {
 	  //
+	  //	  std::cout << "executing tid " << sit_thread::sit_gettid() << std::endl;
             inserts += bench_test(id, &seed);
 	    //	    if(e%10000==0) std::cout << "10 k iters id : "<< sit_thread::sit_gettid() << " e: " << e << std::endl;
 	    //if(seed==66) inserts++;
@@ -196,16 +202,21 @@ run(uintptr_t id)
             nontxnwork(); // some nontx work between txns?
         }
     }
-
+    //    std::cout << "going to sleep"<< std::endl;
+    //sleep(1);
+    //bench_test(id, &seed);
+    //std::cout <<"awake " <<std::endl;
     // wait until all txns finish, then get time
-    //barrier(2);
-    sit_thread::sit_thread_barrier_wait(2);
+    barrier(2);
+    //sit_thread::sit_thread_barrier_wait(7);
+    //bench_update();
+    //bench_update();
     if (id == 0)
         CFG.time = getElapsedTime() - CFG.time;
 
     // add this thread's count to an accumulator
     faa32(&CFG.txcount, count);
-        std::cout << "in run() per thread inserts : " << sit_thread::sit_gettid() << " : " << inserts << std::endl;
+    std::cout << "in run() per thread inserts : " << pthread_self() << std::dec << " : " << inserts << std::endl;
     return inserts;
 }
 
@@ -221,6 +232,7 @@ NOINLINE
 void*
 run_wrapper(void* i)
 {
+  
     int64_t inserts = run((uintptr_t)i);
     //bench_verify();
     TM_THREAD_SHUTDOWN();
@@ -233,35 +245,36 @@ run_wrapper(void* i)
  *  the experiments, verify results, print results, and shut down the system
  */
 int main(int argc, char** argv) {
-    parseargs(argc, argv);
-    bench_reparse();
-    TM_SYS_INIT();
-    TM_THREAD_INIT();
-    bench_init();
+  parseargs(argc, argv);
+  bench_reparse();
+  TM_SYS_INIT();
+  //std::cout << "-------------------------------setting numthreads " << std::endl;
+  //sit_thread::sit_thread_set_numThread(CFG.threads);
+  TM_THREAD_INIT();
+  bench_init();
 
-    void* args[256];
-    //pthread_t tid[256];
-    int inserts = 0;
-    // set up configuration structs for the threads we'll create
-    pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-    for (uintptr_t i = 0; i < CFG.threads; i++)
-        args[i] = reinterpret_cast<void*>(i);
+  void* args[256];
+  pthread_t tid[256];
+  int inserts = 0;
+  // set up configuration structs for the threads we'll create
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+  for (uintptr_t i = 0; i < CFG.threads; i++)
+    args[i] = reinterpret_cast<void*>(i);
 
+  
   struct timespec start, finish;
   double elapsed;
   
   clock_gettime(CLOCK_MONOTONIC, &start);
 
-
-
+  //sit_thread::sit_thread_set_numThread(CFG.threads);
     // actually create the threads
   for (uint32_t j = 1; j < CFG.threads; j++){
-    sit_thread::sit_thread_create(&run_wrapper, args[j]);
+  // sit_thread::sit_thread_create(&run_wrapper, args[j]);
+    pthread_create(&tid[j], &attr, &run_wrapper, args[j]);
   }
-  //        pthread_create(&tid[j], &attr, &run_wrapper, args[j]);
-  
   // all of the other threads should be queued up, waiting to run the
   // benchmark, but they can't until this thread starts the benchmark
   // too...
@@ -275,11 +288,11 @@ int main(int argc, char** argv) {
   // hanging around
   for (uint32_t k = 1; k < CFG.threads; k++){
     void* retval;
-    sit_thread::sit_thread_join(k, &retval);
+    pthread_join(tid[k], &retval);
+    //sit_thread::sit_thread_join(k, &retval);
     inserts += (intptr_t)retval;
     //std::cout << "retval "<< sit_thread::sit_gettid() << " : "  << (intptr_t)retval << std::endl;
   }
-  //        pthread_join(tid[k], NULL);
   clock_gettime(CLOCK_MONOTONIC, &finish);
     
   elapsed = (finish.tv_sec - start.tv_sec);
@@ -291,7 +304,7 @@ int main(int argc, char** argv) {
   std::cout << "Sum of inserts/deletions " << inserts << std::endl;
 
   dump_csv();
-  
+
   // And call sys shutdown stuff
   TM_SYS_SHUTDOWN();
   return 0;

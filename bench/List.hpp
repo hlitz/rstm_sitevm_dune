@@ -45,6 +45,10 @@ class List
     TM_CALLABLE
     bool lookup(int val TM_ARG) const;
 
+    TM_CALLABLE
+    void update( TM_ARG_ALONE) ;
+
+
     // standard IntSet methods
     TM_CALLABLE
     bool insert(int val TM_ARG);
@@ -76,8 +80,7 @@ class List
 // constructor just makes a sentinel for the data structure
 //List::List() : sentinel(new Node()) { }
 List::List(){
-  sentinel = (Node*)hcmalloc(sizeof(Node));
-  //std::cout << "alloc " << sentinel << std::endl;
+  sentinel = (Node*)sitemalloc(sizeof(Node));
   new (sentinel) Node();
 }
 
@@ -131,6 +134,23 @@ bool List::extendedSanityCheck(verifier v, uint32_t v_param) const
     return true;
 }
 
+void List::update(TM_ARG_ALONE){
+  //   Node* prev(sentinel);
+  Node* prev(sentinel);
+  Node* curr((prev->m_next));
+  std::cout << "Print curr next " << prev->m_next << " sentinel " << prev << " tid " << pthread_self()<< std::endl;
+
+  while (curr != NULL) {
+
+    std::cout << "Print curr next " << curr->m_next << " val " << curr->m_val << " tid " << pthread_self()<< std::endl;
+   
+    prev = curr;
+    curr = curr->m_next;
+    //TM_WRITE(prev->m_next, TM_READ(prev->m_next));
+  }
+  //  TM_WRITE(prev->m_next, TM_READ(prev->m_next));
+}
+
 // insert method; find the right place in the list, add val so that it is in
 // sorted order; if val is already in the list, exit without inserting
 TM_CALLABLE
@@ -156,6 +176,7 @@ bool List::insert(int val TM_ARG)
         i->m_val = val;
         i->m_next = const_cast<Node*>(curr);
         TM_WRITE(insert_point->m_next, i);
+	//std::cout << "insert addr " << (uint64_t*)i << " " << (uint64_t*)&(i->m_val) << " " << i->m_val << std::endl;
 	return true;
     }
     return false;
@@ -216,7 +237,7 @@ bool List::remove(int val TM_ARG)
         if (TM_READ(curr->m_val) == val) {
             Node* mod_point = const_cast<Node*>(prev);
             TM_WRITE(mod_point->m_next, TM_READ(curr->m_next));
-	    TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
+	    //TM_WRITE(((Node*)curr)->m_next, (Node*)sentinel); //dummy write
 
             // delete curr...
             TM_FREE(const_cast<Node*>(curr));

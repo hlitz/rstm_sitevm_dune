@@ -194,26 +194,36 @@ MAIN(argc, argv)
      * Initialization
      */
     parseArgs(argc, (char** const)argv);
-    long numThread = global_params[PARAM_THREAD];
     SIM_GET_NUM_CPU(numThread);
+    long numThread = global_params[PARAM_THREAD];
     TM_STARTUP(numThread);
     P_MEMORY_STARTUP(numThread);
-    thread_startup(numThread);
-    maze_t* mazePtr = maze_alloc();
+
+    maze_t* mazePtr;
+    long numPathToRoute;
+    router_t* routerPtr;
+    list_t* pathVectorListPtr;
+    router_solve_arg_t routerArg;
+    long numPathRouted;
+    TM_THREAD_ENTER();
+    TM_BEGIN();
+
+    mazePtr = maze_alloc();
     assert(mazePtr);
-    long numPathToRoute = maze_read(mazePtr, global_inputFile);
-    router_t* routerPtr = router_alloc(global_params[PARAM_XCOST],
+    numPathToRoute = maze_read(mazePtr, global_inputFile);
+    routerPtr = router_alloc(global_params[PARAM_XCOST],
                                        global_params[PARAM_YCOST],
                                        global_params[PARAM_ZCOST],
                                        global_params[PARAM_BENDCOST]);
     assert(routerPtr);
-    list_t* pathVectorListPtr = list_alloc(NULL);
+    pathVectorListPtr = list_alloc(NULL);
     assert(pathVectorListPtr);
-
     /*
      * Run transactions
      */
-    router_solve_arg_t routerArg = {routerPtr, mazePtr, pathVectorListPtr};
+    routerArg = {routerPtr, mazePtr, pathVectorListPtr};
+    TM_END();
+    thread_startup(numThread);
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark
@@ -236,8 +246,8 @@ MAIN(argc, argv)
     // NB: As above, timer reads must be done inside of the simulated region
     //     for PTLSim/ASF
     //GOTO_REAL();
-
-    long numPathRouted = 0;
+    TM_BEGIN();
+    numPathRouted = 0;
     list_iter_t it;
     list_iter_reset(&it, pathVectorListPtr);
     while (list_iter_hasNext(&it, pathVectorListPtr)) {
@@ -256,7 +266,7 @@ MAIN(argc, argv)
     puts("Verification passed.");
     maze_free(mazePtr);
     router_free(routerPtr);
-
+    TM_END();
     TM_SHUTDOWN();
     P_MEMORY_SHUTDOWN();
 

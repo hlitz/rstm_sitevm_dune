@@ -124,6 +124,7 @@ work (void* argPtr)
 {
     
   TM_THREAD_ENTER();
+  thread_barrier_wait();
 
     args_t* args = (args_t*)argPtr;
     float** feature         = args->feature;
@@ -246,6 +247,8 @@ work (void* argPtr)
     /* for(int i1=0; i1<1000; i1++){
       if(indexx[i1]) printf("INDEX %i %i\n", i1, u1++);
     }*/
+    thread_barrier_wait();
+ 
     TM_THREAD_EXIT();
 }
 
@@ -276,7 +279,8 @@ normal_exec (int       nthreads,
     args_t args;
     TIMER_T start;
     TIMER_T stop;
-  
+    TM_THREAD_ENTER();
+    TM_BEGIN();
     /* Allocate space for returning variable clusters[] */
     clusters = (float**)SEQ_MALLOC(nclusters * sizeof(float*));
 
@@ -309,9 +313,9 @@ normal_exec (int       nthreads,
         int cluster_size = sizeof(int) + sizeof(float) * nfeatures;
         const int cacheLineSize = 32;
         cluster_size += (cacheLineSize-1) - ((cluster_size-1) % cacheLineSize);
-        alloc_memory = hccalloc(nclusters, cluster_size);
+        alloc_memory = sitecalloc(nclusters, cluster_size);
 	//printf("alloc mem %p\n", alloc_memory);
-	alloc_len = hccalloc(nclusters, cluster_size);//sizeof(long long int));//cluster_size);
+	alloc_len = sitecalloc(nclusters, cluster_size);//sizeof(long long int));//cluster_size);
 	new_centers_len = (long long int**) SEQ_MALLOC(nclusters * sizeof(int*));
 
 	new_centers = (float**) SEQ_MALLOC(nclusters * sizeof(float*));
@@ -323,9 +327,9 @@ normal_exec (int       nthreads,
         }
  
     }
-    global_i = (long*)hcmalloc(sizeof(long));
-    global_delta = (float*)hcmalloc(sizeof(float));
-
+    global_i = (long*)sitemalloc(sizeof(long));
+    global_delta = (float*)sitemalloc(sizeof(float));
+    TM_END();
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark

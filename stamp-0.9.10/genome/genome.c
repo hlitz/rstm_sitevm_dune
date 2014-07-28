@@ -196,25 +196,34 @@ MAIN (argc,argv)
     long minNumSegment = global_params[PARAM_NUMBER];
     long numThread = global_params[PARAM_THREAD];
 
+
+    random_t* randomPtr;
+    gene_t* genePtr;
+    char* gene;
+    segments_t* segmentsPtr;
+    sequencer_t* sequencerPtr;
+
     TM_STARTUP(numThread);
     P_MEMORY_STARTUP(numThread);
-    thread_startup(numThread);
+    TM_THREAD_ENTER();
 
-    random_t* randomPtr = random_alloc();
+    TM_BEGIN();
+    randomPtr= random_alloc();
     assert(randomPtr != NULL);
     random_seed(randomPtr, 0);
 
-    gene_t* genePtr = gene_alloc(geneLength);
+    genePtr = gene_alloc(geneLength);
     assert( genePtr != NULL);
     gene_create(genePtr, randomPtr);
-    char* gene = genePtr->contents;
+    gene = genePtr->contents;
 
-    segments_t* segmentsPtr = segments_alloc(segmentLength, minNumSegment);
+    segmentsPtr = segments_alloc(segmentLength, minNumSegment);
     assert(segmentsPtr != NULL);
     segments_create(segmentsPtr, genePtr, randomPtr);
-    sequencer_t* sequencerPtr = sequencer_alloc(geneLength, segmentLength, segmentsPtr);
+    sequencerPtr = sequencer_alloc(geneLength, segmentLength, segmentsPtr);
     assert(sequencerPtr != NULL);
-
+    TM_END();
+    thread_startup(numThread);
     puts("done.");
     printf("Gene length     = %li\n", genePtr->length);
     printf("Segment length  = %li\n", segmentsPtr->length);
@@ -238,6 +247,7 @@ MAIN (argc,argv)
 #else
     thread_start(sequencer_run, (void*)sequencerPtr);
 #endif
+    //sit_thread::sit_thread_barrier_wait(0);
     TIMER_READ(stop);
     // NB: As above, timer reads must be done inside of the simulated region
     //     for PTLSim/ASF
@@ -248,15 +258,19 @@ MAIN (argc,argv)
 
     /* Check result */
     {
-        char* sequence = sequencerPtr->sequence;
-        int result = strcmp(gene, sequence);
-        printf("Sequence matches gene: %s\n", (result ? "no" : "yes"));
-        if (result) {
-            printf("gene     = %s\n", gene);
-            printf("sequence = %s\n", sequence);
-        }
-        fflush(stdout);
-        assert(strlen(sequence) >= strlen(gene));
+      char* sequence;
+      int result;
+      TM_BEGIN();
+      sequence= sequencerPtr->sequence;
+      result = strcmp(gene, sequence);
+      TM_END();
+      printf("Sequence matches gene: %s\n", (result ? "no" : "yes"));
+      if (result) {
+	printf("gene     = %s\n", gene);
+	printf("sequence = %s\n", sequence);
+      }
+      fflush(stdout);
+      //assert(strlen(sequence) >= strlen(gene));
     }
 
     /* Clean up */

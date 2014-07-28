@@ -86,7 +86,7 @@ static edge*     global_soughtStrWtList    = NULL;
 
 void 
 getStartListsAlloc(){
-  global_maxWeight = (LONGINT_T*)hcmalloc(sizeof(LONGINT_T));
+  global_maxWeight = (LONGINT_T*)sitemalloc(sizeof(LONGINT_T));
 }
 
 /* =============================================================================

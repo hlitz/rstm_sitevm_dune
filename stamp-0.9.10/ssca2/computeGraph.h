@@ -85,7 +85,7 @@ void
 computeGraph (void* argPtr);
 
 void
-computeGraphAlloc();
+computeGraphAlloc(void* argPtr);
 
 #endif /* COMPUTEGRAPH_H */
 
