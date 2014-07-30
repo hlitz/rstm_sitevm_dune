@@ -17,6 +17,7 @@
 #include "algs/algs.hpp"
 #include "inst.hpp"
 #include <fstream>
+#include "stm/lib_sitevm.h"
 
 //#include "stm/lib_hicamp.h"
 
@@ -191,6 +192,8 @@ namespace stm
     // create a TxThread and save it in thread-local storage
     Self = new TxThread();
     sitevm_enter();
+    sitevm_open(sit_segment);
+
   }
 
   /**
