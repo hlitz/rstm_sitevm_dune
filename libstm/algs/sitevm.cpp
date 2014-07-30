@@ -111,7 +111,7 @@ inline uint64_t rdtsc()
 	endtime = rdtsc();
       }
       } */
-    //OnFirstWrite(tx, read_rw, read_rw_promo, write_rw, commit_rw);
+    OnFirstWrite(tx, read_rw, read_rw_promo, write_rw, commit_rw);
     return false;
   }
 
