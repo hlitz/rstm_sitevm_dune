@@ -99,7 +99,7 @@ inline uint64_t rdtsc()
     //std::cout << "Starting TRX " << tx->id << std::endl;
     //sit_segment->clear_promoted_reads();
     //sit_segment->update();
-    sitevm_update(sit_segment);
+    //sitevm_update(sit_segment);
     //std::cout << "Started TRX " << sit_thread::sit_gettid() << std::endl;
     
     //XBEGIN;
@@ -119,14 +119,15 @@ inline uint64_t rdtsc()
   SITE_VM::site_update(){
     //std::cout << "--------------------------------site update in sitevm" << std::endl;
     // sit_segment->update();
-    sitevm_update(sit_segment);
+    //sitevm_update(sit_segment);
   }
 
   void
   SITE_VM::site_commit(){
     //std::cout << "--------------------------------site commit in sitevm" << std::endl;
     //sit_segment->commit();
-    sitevm_commit(sit_segment);
+    //sitevm_commit(sit_segment);
+    sitevm_commit_and_update(sit_segment);
   }
 
   /**
@@ -145,7 +146,7 @@ inline uint64_t rdtsc()
     //std::cout << "Commit RO TRX "<< sit_thread::sit_gettid() << endl;
     
     //int result = sit_segment->commit();
-    int result = sitevm_commit(sit_segment);
+    int result = sitevm_commit_and_update(sit_segment);
     //    int result = sit_segment->commit();
     //   std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
      if(result ==0){
@@ -179,7 +180,7 @@ inline uint64_t rdtsc()
       tx->tmabort(tx);
       }*/
     //int result = sit_segment->commit();
-    int result = sitevm_commit(sit_segment);
+    int result = sitevm_commit_and_update(sit_segment);
     //std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
     if(result ==0){
       //std::cout << "comit ro" << sit_thread::sit_gettid()<< std::endl;
@@ -442,7 +443,7 @@ inline uint64_t rdtsc()
       ubegin = rdtsc();
       //sit_segment->update();//TM_BEGIN(); 
 
-      sitevm_update(sit_segment);
+      //sitevm_update(sit_segment);
       uend = rdtsc();
       for(int i=0; i<FAULTS; i++){
 	rbegin = rdtsc();

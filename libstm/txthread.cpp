@@ -192,8 +192,7 @@ namespace stm
     // create a TxThread and save it in thread-local storage
     Self = new TxThread();
     sitevm_enter();
-    sitevm_open(sit_segment);
-
+    sitevm_open_and_update(sit_segment);
   }
 
   /**
