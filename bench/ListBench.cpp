@@ -205,12 +205,6 @@ bool bench_verify() {
   TM_BEGIN(atomic){
     ret = SET->isSane();
   } TM_END; 
-  TM_BEGIN(atomic){
-    ret = SET->isSane();
-  } TM_END; 
-  TM_BEGIN(atomic){
-    ret = SET->isSane();
-  } TM_END; 
   return ret;
 }
 

@@ -144,7 +144,7 @@ barrier(uint32_t which)
     initialized = true;
   }*/
     static volatile uint32_t barriers[16] = {0};
-    std::cout << barriers[which] << " bar thresds " << CFG.threads << " barrier number " << which << std::endl; 
+
 
     CFENCE;
     fai32(&barriers[which]);
@@ -159,11 +159,11 @@ run(uintptr_t id)
 
     // create a transactional context (repeat calls from thread 0 are OK)
     TM_THREAD_INIT();
-    printf("thread init \n");
+    //printf("thread init \n");
     int32_t inserts = 0;
     // wait until all threads created, then set alarm and read timer
     barrier(0);
-    printf("after barrier\n");
+    //    printf("after barrier\n");
     //sit_thread::sit_thread_barrier_wait(0);
         if (id == 0) {
         if (!CFG.execute) {
@@ -217,7 +217,7 @@ run(uintptr_t id)
 
     // add this thread's count to an accumulator
     faa32(&CFG.txcount, count);
-    std::cout << "in run() per thread inserts : " << pthread_self() << std::dec << " : " << inserts << std::endl;
+    //    std::cout << "in run() per thread inserts : " << pthread_self() << std::dec << " : " << inserts << std::endl;
     return inserts;
 }
 
