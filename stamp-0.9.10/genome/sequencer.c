@@ -246,7 +246,6 @@ sequencer_run (void* argPtr)
     TM_THREAD_ENTER();
     thread_barrier_wait();
 
-    
     long threadId = thread_getId();
     
     if(threadId==0)

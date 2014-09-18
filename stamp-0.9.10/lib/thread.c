@@ -73,6 +73,7 @@
 #include <stdlib.h>
 #include "thread.h"
 #include "types.h"
+#include "stm/lib_sitevm.h"
 
 static THREAD_LOCAL_T    global_threadId;
 static long              global_numThread       = 1;
@@ -322,6 +323,7 @@ typedef struct barrier {
     pthread_mutex_t mutex;
     int count;
     int crossing;
+  int reached;
 } barrier_t;
 
 barrier_t *barrier_alloc() {
@@ -337,21 +339,44 @@ void barrier_init(barrier_t *b, int n) {
     pthread_mutex_init(&b->mutex, NULL);
     b->count = n;
     b->crossing = 0;
+    b->reached =0;
 }
 
 void barrier_cross(barrier_t *b) {
+  printf("barr cross %i\n", b->count);
     pthread_mutex_lock(&b->mutex);
-    /* One more thread through */
+/* One more thread through */
     b->crossing++;
     /* If not all here, wait */
-    if (b->crossing < b->count) {
-        pthread_cond_wait(&b->complete, &b->mutex);
-    } else {
-        /* Reset for next time */
-        b->crossing = 0;
-        pthread_cond_broadcast(&b->complete);
+ 
+    while (b->crossing < b->count && b->reached==0) {
+      pthread_mutex_unlock(&b->mutex);
+      pthread_mutex_lock(&b->mutex);
     }
+    //All threads have reached the barrier
+    b->reached = 1;
+    b->crossing--;
+    printf("barr cross reached %i\n", b->count);
+    while (b->crossing !=0) {
+      pthread_mutex_unlock(&b->mutex);
+      pthread_mutex_lock(&b->mutex);
+    }
+    b->reached = 0;
     pthread_mutex_unlock(&b->mutex);
+    printf("barr cross exit %i\n", b->count);
+
+
+
+
+    //   if (b->crossing < b->count) {
+    //    pthread_cond_wait(&b->complete, &b->mutex);
+    //} else {
+        /* Reset for next time */
+    //   b->crossing = 0;
+        //pthread_cond_broadcast(&b->complete);
+	//}
+    
+    //pthread_mutex_unlock(&b->mutex);
 }
 
 
@@ -362,13 +387,21 @@ void barrier_cross(barrier_t *b) {
  * -- Call after thread_start() to synchronize threads inside parallel region
  * =============================================================================
  */
+#include <stdio.h>
 void
 thread_barrier_wait()
 {
 #ifndef SIMULATOR
-    long threadId = thread_getId();
+  long threadId = thread_getId();
 #endif /* !SIMULATOR */
-    THREAD_BARRIER(global_barrierPtr, threadId);
+  printf("barrier--\n");
+  sitevm_commit_and_update(sit_segment);
+  //sitevm_commit(sit_segment);
+  THREAD_BARRIER(global_barrierPtr, threadId);
+  printf("call c&u\n");
+  sitevm_commit_and_update(sit_segment);
+  //sitevm_update(sit_segment);
+  printf("barrier exit\n");
 }
 
 

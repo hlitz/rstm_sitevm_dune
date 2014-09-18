@@ -290,15 +290,14 @@ MAIN(argc, argv)
     len = max_nclusters - min_nclusters + 1;
     TM_END();
     thread_startup(nthreads);
-
+    printf("starting clusters thread num: %i\n", nthreads);
     for (i = 0; i < nloops; i++) {
         /*
          * Since zscore transform may perform in cluster() which modifies the
          * contents of attributes[][], we need to re-store the originals
          */
-      TM_BEGIN();
       memcpy(attributes[0], buf, (numObjects * numAttributes * sizeof(float)));
-      TM_END();
+      thread_barrier_wait();
       cluster_centres = NULL;
       cluster_exec(nthreads,
                      numObjects,

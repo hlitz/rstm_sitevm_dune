@@ -170,6 +170,7 @@ work (void* argPtr)
 
             /* Update new cluster centers : sum of objects located within */
             TM_BEGIN();
+ printf("normal\n");
 	    //printf("shared write to begin: \n");
 	    //	    int write = *new_centers_len[index];
 	    //int* pt = new_centers_len[i];
@@ -191,6 +192,7 @@ work (void* argPtr)
 	    //	    pt = new_centers_len[i];
 	    //dat = TM_SHARED_READ_I(*new_centers_len[i]);
 	    //printf("in loop write centers len data: %i\n", dat);
+ printf("normal 2\n");
          
             for (j = 0; j < nfeatures; j++) {
 	      //printf("featurs\n");
@@ -205,7 +207,8 @@ work (void* argPtr)
 	      //float fl = (TM_SHARED_READ_F(new_centers[index][j])+ feat);//feature[i][j]);
 	      //int len = *new_centers_len[index];
                
-	      
+	      printf("normal 3 %i %i %p %p\n", index, j, &(new_centers[index][j]), new_centers[3]);
+
 	      TM_SHARED_WRITE_F(
 				  //write,
 				  new_centers[index][j],
@@ -313,20 +316,28 @@ normal_exec (int       nthreads,
         int cluster_size = sizeof(int) + sizeof(float) * nfeatures;
         const int cacheLineSize = 32;
         cluster_size += (cacheLineSize-1) - ((cluster_size-1) % cacheLineSize);
-        alloc_memory = sitecalloc(nclusters, cluster_size);
-	//printf("alloc mem %p\n", alloc_memory);
+        //alloc_memory = sitemalloc(nclusters* cluster_size);
+	printf("alloc mem %p %i %i\n", alloc_memory, nclusters*cluster_size, nclusters);
 	alloc_len = sitecalloc(nclusters, cluster_size);//sizeof(long long int));//cluster_size);
 	new_centers_len = (long long int**) SEQ_MALLOC(nclusters * sizeof(int*));
 
 	new_centers = (float**) SEQ_MALLOC(nclusters * sizeof(float*));
 
-        assert(alloc_memory && new_centers && new_centers_len);
+	//        assert(alloc_memory && new_centers && new_centers_len);
+	
         for (i = 0; i < nclusters; i++) {
+	  printf("cluster centers %p\n", (float*)((char*)alloc_memory + cluster_size * i + sizeof(int)));
+        }
+       for (i = 0; i < nclusters; i++) {
 	  new_centers_len[i] = (long long int*)((char*)alloc_len/*memory*/ + cluster_size * i);
-	  new_centers[i] = (float*)((char*)alloc_memory + cluster_size * i + sizeof(int));
+	  new_centers[i] = (float*)sitemalloc(cluster_size );//(float*)((char*)alloc_memory + cluster_size * i + sizeof(int));
+        }
+	for (i = 0; i < nclusters; i++) {
+	  printf("new centers %p\n", new_centers[i]);
         }
  
     }
+   
     global_i = (long*)sitemalloc(sizeof(long));
     global_delta = (float*)sitemalloc(sizeof(float));
     TM_END();

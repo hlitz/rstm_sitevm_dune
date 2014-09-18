@@ -130,6 +130,7 @@ namespace stm
       void* txAlloc(size_t const &size)
       {
           void* ptr = sitemalloc(size);
+	  //printf("txAlloc %p\n", ptr); 
           if ((*my_ts)&1)
               allocs.insert(ptr);
           return ptr;
@@ -138,6 +139,7 @@ namespace stm
       /*** Wrapper to thread-specific allocator for freeing memory */
       void txFree(void* ptr)
       {
+	//printf("txFree %p\n", ptr); 
           if ((*my_ts)&1)
               frees.insert(ptr);
           else
@@ -150,6 +152,7 @@ namespace stm
       /*** On abort, unroll allocs, clear lists, exit epoch */
       void onTxAbort()
       {
+	//	printf("on tx abort\n");
           AddressList::iterator i, e;
           for (i = allocs.begin(), e = allocs.end(); i != e; ++i)
               sitefree(*i);

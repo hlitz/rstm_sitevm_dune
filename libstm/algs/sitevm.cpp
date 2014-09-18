@@ -92,7 +92,7 @@ inline uint64_t rdtsc()
   SITE_VM::begin(TxThread* tx)
   {
     //promo_list_ptr[sit_thread::sit_gettid()] = 0x0UL;
-    //std::cout << "Begin TRX"<< promo_list_ptr[sit_thread::sit_gettid()]<< std::endl;
+    //std::cout << "Begin TRX"<< tx->id << std::endl;
     tx->txn++;
     // uint64_t begintime, endtime;
     tx->allocator.onTxBegin();
@@ -136,7 +136,7 @@ inline uint64_t rdtsc()
   void
   SITE_VM::commit_ro(TxThread* tx)
   {
-    //        cout << "Commit Ro TRX"<< sit_thread::sit_gettid() << endl;
+    //    cout << "Commit Ro TRX"<< tx->id << endl;
     //std::cout << "committing" << std::endl;
     /*   if(!TMrocommit()){
       //std::cout << "comit ro abort" << std::endl;
@@ -171,6 +171,7 @@ inline uint64_t rdtsc()
   void
   SITE_VM::commit_rw(TxThread* tx)
   {
+    //    cout << "Commit RW TRX"<< tx->id << endl;
     //cout << "Commit RW TRX"<< sit_thread::sit_gettid() << endl;
     //    std::cout << "committing" << std::endl;
     /*bool res = TMcommit(); 
@@ -180,6 +181,7 @@ inline uint64_t rdtsc()
       tx->tmabort(tx);
       }*/
     //int result = sit_segment->commit();
+    //std::cout << "c and u tid: "<< tx->id << std::endl;
     int result = sitevm_commit_and_update(sit_segment);
     //std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
     if(result ==0){
@@ -404,8 +406,8 @@ inline uint64_t rdtsc()
     std::cout << "Switch to SITE_VM"  << std::endl;
     //sit_segment = new sit_seg(SIT_SEG_SIZE, "segment 1");
     sit_segment = sitevm_seg_create(NULL, SITEVM_SEG_SIZE);
-
-
+    sitemallocinit(sit_segment);
+    
     /*for(int i =0; i< MAX_SITE_THREADS; i++){
       promo_list[i] = (uint64_t*)malloc(sizeof(uint64_t*)*PROMO_LIST_SIZE);
       }*/
@@ -420,7 +422,7 @@ inline uint64_t rdtsc()
     
     //sit_segment_promo = new sit_seg(SIT_SEG_SIZE<<PROMO_GRANULARITY, "promo segment 1");
     //std::cout << "promo created" << std::endl;
-    sitevm_segment_malloc = new sitevm_malloc(sit_segment, "malllocseg");//(sit_malloc**)malloc(sizeof(sit_malloc*)*MAX_SITE_THREADS);
+    //    sitevm_segment_malloc = new sitevm_malloc(sit_segment, "malllocseg");//(sit_malloc**)malloc(sizeof(sit_malloc*)*MAX_SITE_THREADS);
     
 /*for(int t=0; t<MAX_SITE_THREADS; t++){
       string name = "malloc-";

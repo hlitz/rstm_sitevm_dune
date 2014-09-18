@@ -61,13 +61,15 @@ void WBMMPolicy::handle_full_prelimbo()
         // free all blocks in each node's pool and free the node
         while (current != NULL) {
             // free blocks in current's pool
-            for (unsigned long i = 0; i < current->POOL_SIZE; i++)
+	  for (unsigned long i = 0; i < current->POOL_SIZE; i++){
+	    //printf("policy cpp %p\n", current->pool[i]);
                 sitefree(current->pool[i]);
-
+	}
             // free the node and move on
             limbo_t* old = current;
             current = current->older;
-            sitefree(old);
+	    //printf("policy cpp2 %p \n", old);
+            delete old;
         }
     }
     prelimbo = new limbo_t();

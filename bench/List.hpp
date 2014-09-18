@@ -159,7 +159,7 @@ bool List::insert(int val TM_ARG)
     // traverse the list to find the insertion point
     const Node* prev(sentinel);
     const Node* curr(TM_READ(prev->m_next));
-
+    //std::cout << "insert" << std::endl;
     while (curr != NULL) {
         if (TM_READ(curr->m_val) >= val)
             break;
@@ -179,8 +179,10 @@ bool List::insert(int val TM_ARG)
 	//std::cout << "insert addr " << (uint64_t*)i << " " << (uint64_t*)&(i->m_val) << " " << i->m_val << std::endl;
 	return true;
     }
+    //    printf("insert\n");
     return false;
 }
+
 
 // search function
 TM_CALLABLE
@@ -229,7 +231,8 @@ int List::findmin(TM_ARG_ALONE) const
 TM_CALLABLE
 bool List::remove(int val TM_ARG)
 {
-    // find the node whose val matches the request
+  //  std::cout << "remove" << std::endl;
+      // find the node whose val matches the request
     const Node* prev(sentinel);
     const Node* curr(TM_READ(prev->m_next));
     while (curr != NULL) {
@@ -252,6 +255,7 @@ bool List::remove(int val TM_ARG)
         prev = curr;
         curr = TM_READ(prev->m_next);
     }
+    //    printf("remove\n");
     return false;
 }
 

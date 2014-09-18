@@ -133,12 +133,12 @@ extern "C" void catch_SIGALRM(int) {
 /**
  *  Support a few lightweight barriers
  */
-  uint32_t* barriers;
+//  uint32_t* barriers;
 void
 barrier(uint32_t which)
 {
   
-  static volatile bool initialized = false;
+  //  static volatile bool initialized = false;
   /*if(!initialized){
     barriers = (uint32_t*)malloc(16*sizeof(uint32_t));
     initialized = true;
@@ -236,7 +236,8 @@ run_wrapper(void* i)
   
     int64_t inserts = run((uintptr_t)i);
     //bench_verify();
-    TM_THREAD_SHUTDOWN();
+    printf("shutting down thread\n");
+    //TM_THREAD_SHUTDOWN();
     return (void*)inserts;// NULL;
 }
 }
@@ -268,8 +269,8 @@ int main(int argc, char** argv) {
   struct timespec start, finish;
   double elapsed;
   
-  clock_gettime(CLOCK_MONOTONIC, &start);
-
+  //clock_gettime(CLOCK_MONOTONIC, &start);
+  
   //sit_thread::sit_thread_set_numThread(CFG.threads);
     // actually create the threads
   for (uint32_t j = 1; j < CFG.threads; j++){
@@ -294,7 +295,7 @@ int main(int argc, char** argv) {
     inserts += (intptr_t)retval;
     //std::cout << "retval "<< sit_thread::sit_gettid() << " : "  << (intptr_t)retval << std::endl;
   }
-  clock_gettime(CLOCK_MONOTONIC, &finish);
+  //clock_gettime(CLOCK_MONOTONIC, &finish);
     
   elapsed = (finish.tv_sec - start.tv_sec);
   elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
