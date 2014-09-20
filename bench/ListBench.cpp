@@ -71,7 +71,7 @@ inline uint64_t rdtsc()
 
 /*** the list we will manipulate in the experiment */
 List* SET;
-int elems [32];
+int64_t elems [32];
 int ielems [32];
 int relems [32];
 int startelems = 0;
@@ -187,15 +187,16 @@ int bench_test(uintptr_t id, uint32_t* seed)
 
 /*** Ensure the final state of the benchmark satisfies all invariants */
 bool bench_verify() { 
-  int sum = 0;
+  int64_t sum = 0;
   int srelems = 0;
   int sielems = 0;
   for(int i=0; i<16; i++){
     sum += elems[i];
     srelems += relems[i];
     sielems += ielems[i];
-    //std::cout << "tid " << i << " : " << elems[i] << std::endl; 
+    std::cout << "tid " << i << " : " << elems[i] << std::endl; 
   }
+  std::cout << "elems inserted/removed " << sum << std::endl;
   //std::cout << "relems " << srelems << " ielems " << sielems << std::endl;
   //std::cout << "sum " << sum << " sum + startelems " << sum+startelems << std::endl;
   for(int t=0; t<8; t++){

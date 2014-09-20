@@ -139,8 +139,7 @@ namespace stm
       /*** Wrapper to thread-specific allocator for freeing memory */
       void txFree(void* ptr)
       {
-	//printf("txFree %p\n", ptr); 
-          if ((*my_ts)&1)
+	if ((*my_ts)&1)
               frees.insert(ptr);
           else
               sitefree(ptr);

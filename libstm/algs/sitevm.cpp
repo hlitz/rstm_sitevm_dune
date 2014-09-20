@@ -151,13 +151,13 @@ inline uint64_t rdtsc()
     //   std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
      if(result ==0){
        //       std::cout << "comit ro" << sit_thread::sit_gettid()<< std::endl;
-       tx->allocator.onTxCommit();
+       //tx->allocator.onTxCommit();
        //sit_thread::stat_commit();
        OnReadOnlyCommit(tx);
     }
     else{
       //std::cout << "comit ro abort"<< sit_thread::sit_gettid() << std::endl;
-      tx->allocator.onTxAbort(); 
+      //tx->allocator.onTxAbort(); 
       //sit_thread::stat_abort();
       tx->tmabort(tx);
     }
@@ -186,14 +186,14 @@ inline uint64_t rdtsc()
     //std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
     if(result ==0){
       //std::cout << "comit ro" << sit_thread::sit_gettid()<< std::endl;
-      tx->allocator.onTxCommit();
+      //tx->allocator.onTxCommit();
       //sit_thread::stat_commit();
       OnReadWriteCommit(tx, read_rw, read_rw_promo, write_rw, commit_rw);
 	 //OnReadOnlyCommit(tx);
     }
     else{
       //      std::cout << "comit rw abort" << sit_thread::sit_gettid()<< std::endl;
-      tx->allocator.onTxAbort(); 
+      //tx->allocator.onTxAbort(); 
       //sit_thread::stat_abort();
       tx->tmabort(tx);
     }

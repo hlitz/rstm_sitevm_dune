@@ -170,7 +170,7 @@ work (void* argPtr)
 
             /* Update new cluster centers : sum of objects located within */
             TM_BEGIN();
- printf("normal\n");
+	    //printf("normal\n");
 	    //printf("shared write to begin: \n");
 	    //	    int write = *new_centers_len[index];
 	    //int* pt = new_centers_len[i];
@@ -192,7 +192,7 @@ work (void* argPtr)
 	    //	    pt = new_centers_len[i];
 	    //dat = TM_SHARED_READ_I(*new_centers_len[i]);
 	    //printf("in loop write centers len data: %i\n", dat);
- printf("normal 2\n");
+	    //printf("normal 2\n");
          
             for (j = 0; j < nfeatures; j++) {
 	      //printf("featurs\n");
@@ -207,7 +207,7 @@ work (void* argPtr)
 	      //float fl = (TM_SHARED_READ_F(new_centers[index][j])+ feat);//feature[i][j]);
 	      //int len = *new_centers_len[index];
                
-	      printf("normal 3 %i %i %p %p\n", index, j, &(new_centers[index][j]), new_centers[3]);
+	      //	      printf("normal 3 %i %i %p %p\n", index, j, &(new_centers[index][j]), new_centers[3]);
 
 	      TM_SHARED_WRITE_F(
 				  //write,
@@ -326,14 +326,14 @@ normal_exec (int       nthreads,
 	//        assert(alloc_memory && new_centers && new_centers_len);
 	
         for (i = 0; i < nclusters; i++) {
-	  printf("cluster centers %p\n", (float*)((char*)alloc_memory + cluster_size * i + sizeof(int)));
+	  //printf("cluster centers %p\n", (float*)((char*)alloc_memory + cluster_size * i + sizeof(int)));
         }
        for (i = 0; i < nclusters; i++) {
 	  new_centers_len[i] = (long long int*)((char*)alloc_len/*memory*/ + cluster_size * i);
 	  new_centers[i] = (float*)sitemalloc(cluster_size );//(float*)((char*)alloc_memory + cluster_size * i + sizeof(int));
         }
 	for (i = 0; i < nclusters; i++) {
-	  printf("new centers %p\n", new_centers[i]);
+	  //printf("new centers %p\n", new_centers[i]);
         }
  
     }

@@ -149,21 +149,20 @@ zscoreTransform (float** data, /* in & out: [numObjects][numAttributes] */
     int j;
     int t = pthread_self();
     single_variable = (float*)calloc(numObjects, sizeof(float));
-    printf("starting clustersssssd %i %i %p\n", numAttributes, numObjects, single_variable);
-
+    //printf("starting clustersssssd %i %i %p\n", numAttributes, numObjects, single_variable);
     assert(single_variable);
     for (i = 0; i < numAttributes; i++) {
         for (j = 0; j < numObjects; j++) {
-	  printf("i %i j %i %i datap: %p\n", i , j, t, data);
-	  printf("%p %i\n", &(data[j][i]), t);
+	  //printf("i %i j %i %i datap: %p\n", i , j, t, data);
+	  //printf("%p %i\n", &(data[j][i]), t);
 	  single_variable[j] = data[j][i];
-	  printf("single %p %i\n", &single_variable[j], t);  
+	  //printf("single %p %i\n", &single_variable[j], t);  
         }
-	printf("starting clusterssseees\n");
+	//printf("starting clusterssseees\n");
 
         moments = extractMoments(single_variable, numObjects, 2);
         moments[1] = (float)sqrt((double)moments[1]);
-	printf("starting clusterssss33\n");
+	//printf("starting clusterssss33\n");
 
         for (j = 0; j < numObjects; j++) {
             data[j][i] = (data[j][i]-moments[0])/moments[1];
