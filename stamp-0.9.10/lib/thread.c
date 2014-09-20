@@ -322,8 +322,10 @@ typedef struct barrier {
     pthread_cond_t complete;
     pthread_mutex_t mutex;
     int count;
-    int crossing;
-  int reached;
+  //How many have crossed in this countset
+  int crossing;
+  //Which countset (we flip this every time the barrier is opened)
+  int countset;
 } barrier_t;
 
 barrier_t *barrier_alloc() {
@@ -339,34 +341,28 @@ void barrier_init(barrier_t *b, int n) {
     pthread_mutex_init(&b->mutex, NULL);
     b->count = n;
     b->crossing = 0;
-    b->reached =0;
+    b->countset = 0;
 }
 
 void barrier_cross(barrier_t *b) {
-  printf("barr cross %i\n", b->count);
     pthread_mutex_lock(&b->mutex);
 /* One more thread through */
     b->crossing++;
+    printf("barr cross %i %d\n", b->count, b->crossing);
     /* If not all here, wait */
- 
-    while (b->crossing < b->count && b->reached==0) {
-      pthread_mutex_unlock(&b->mutex);
-      pthread_mutex_lock(&b->mutex);
+    int old_countset = b->countset;
+    if (b->crossing < b->count){
+      while (b->countset == old_countset) {
+        pthread_mutex_unlock(&b->mutex);
+        pthread_mutex_lock(&b->mutex);
+      }
+    } else {
+      //We are the last thread, flip to the next countset
+      b->countset = !b->countset;
+      b->crossing = 0;
     }
-    //All threads have reached the barrier
-    b->reached = 1;
-    b->crossing--;
-    printf("barr cross reached %i\n", b->count);
-    while (b->crossing !=0) {
-      pthread_mutex_unlock(&b->mutex);
-      pthread_mutex_lock(&b->mutex);
-    }
-    b->reached = 0;
     pthread_mutex_unlock(&b->mutex);
     printf("barr cross exit %i\n", b->count);
-
-
-
 
     //   if (b->crossing < b->count) {
     //    pthread_cond_wait(&b->complete, &b->mutex);
