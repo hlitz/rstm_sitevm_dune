@@ -153,8 +153,18 @@ namespace stm
       {
 	//	printf("on tx abort\n");
           AddressList::iterator i, e;
+          /*
+          if (allocs.size() > 0){
+            printf("WARNING: Aborted a transaction that allocated"
+            "elements. Sitevm wont' free those elements (but support for"
+            "this is coming soon!).\n");
+          }
+          */
+          /*
+          //This is already done as part of sitevm now.
           for (i = allocs.begin(), e = allocs.end(); i != e; ++i)
               sitefree(*i);
+              */
           frees.reset();
           allocs.reset();
           *my_ts = 1+*my_ts;

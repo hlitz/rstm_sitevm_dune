@@ -58,10 +58,12 @@ void* sitecalloc(size_t num, size_t size){
 }
 
 void sitefree(void * ptr){
-  if((uint64_t)ptr<0x30000000000 || (uint64_t)ptr>0x30040000000){
+  /*
+  //if((uint64_t)ptr<0x30000000000 || (uint64_t)ptr>0x30040000000){
     std::cout << "freeing small address " << std::hex << (uint64_t)ptr << std::endl;
     print_backtrace();
-    }
+  //}
+  */
   
   //printf("LIBSITE FREE %p tid %i\n", ptr, pthread_self());
   sitevm_malloc::sfree(ptr);

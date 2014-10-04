@@ -391,11 +391,13 @@ thread_barrier_wait()
   long threadId = thread_getId();
 #endif /* !SIMULATOR */
   printf("barrier--\n");
-  sitevm_commit_and_update(sit_segment);
+  int abort = sitevm_commit_and_update(sit_segment);
+  assert(abort == 0);
   //sitevm_commit(sit_segment);
   THREAD_BARRIER(global_barrierPtr, threadId);
   printf("call c&u\n");
-  sitevm_commit_and_update(sit_segment);
+  abort = sitevm_commit_and_update(sit_segment);
+  assert(abort == 0);
   //sitevm_update(sit_segment);
   printf("barrier exit\n");
 }
