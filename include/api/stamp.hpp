@@ -60,12 +60,30 @@ inline void tx_safe_non_tx_free(void * ptr)
     sitefree(ptr);
 }
 
+inline void print_bt(){
+  void *array[100];
+  size_t size;
+  char **strings;
+    
+  size = backtrace (array, 100);
+  strings = backtrace_symbols (array, size);
+  //std::cout << " ------------------ addr " << addr << std::endl;
+  int i;
+  for(i =0; i< (int)size; i++){
+    printf("%s\n",strings[i]);
+  }
+  printf("\nEnd Backtrace\n");
+}
+
+
 /**
  *  The begin and commit instrumentation are straightforward
  */
 #define STM_BEGIN_WR()                                                  \
     {                                                                   \
-    jmp_buf jmpbuf_;                                                    \
+    /*int commit_res_sitevm =*/ sitevm_commit_and_update(sit_segment);	\
+    /*if(commit_res_sitevm!=0) {printf("Data race! Sitevm conflict outside of TX\n"); print_bt();}*/ \
+    jmp_buf jmpbuf_;							\
     uint32_t abort_flags = setjmp(jmpbuf_);                             \
     begin(static_cast<stm::TxThread*>(STM_SELF), &jmpbuf_, abort_flags);\
     CFENCE;                                                             \

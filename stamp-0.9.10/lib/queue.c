@@ -293,14 +293,15 @@ queue_push (queue_t* queuePtr, void* dataPtr)
     long pop      = queuePtr->pop;
     long push     = queuePtr->push;
     long capacity = queuePtr->capacity;
-
+    //    printf("push queue %i cap %i\n", push ,capacity);
     assert(pop != push);
+    //printf("push push %i pop %i\n",  push, pop);
 
     /* Need to resize */
     long newPush = (push + 1) % capacity;
     if (newPush == pop) {
-
-        long newCapacity = capacity * QUEUE_GROWTH_FACTOR;
+      //printf("resize %i push %i pop %i\n", capacity, push, pop);
+      long newCapacity = capacity * QUEUE_GROWTH_FACTOR;
         void** newElements = (void**)SEQ_MALLOC(newCapacity * sizeof(void*));
         if (newElements == NULL) {
             return FALSE;
@@ -317,10 +318,14 @@ queue_push (queue_t* queuePtr, void* dataPtr)
             long src;
             for (src = (pop + 1); src < capacity; src++, dst++) {
                 newElements[dst] = elements[src];
+		//	printf("copy action new %i srd %i dstp %p srcp %p\n", newElements[dst], elements[src], &newElements[dst], &elements[src]); 
             }
+	    //printf("dir change\n");
             for (src = 0; src < push; src++, dst++) {
                 newElements[dst] = elements[src];
+		//				printf("copy action new %i srd %i dstp %p srcp %p\n", newElements[dst], elements[src], &newElements[dst], &elements[src]); 
             }
+	    //printf("copy\n");
         }
 
         SEQ_FREE(elements);
@@ -348,7 +353,7 @@ Pqueue_push (queue_t* queuePtr, void* dataPtr)
     long pop      = queuePtr->pop;
     long push     = queuePtr->push;
     long capacity = queuePtr->capacity;
-
+    
     assert(pop != push);
 
     /* Need to resize */
@@ -404,14 +409,12 @@ TMqueue_push (TM_ARGDECL  queue_t* queuePtr, void* dataPtr)
     long pop      = (long)TM_SHARED_READ_L(queuePtr->pop);
     long push     = (long)TM_SHARED_READ_L(queuePtr->push);
     long capacity = (long)TM_SHARED_READ_L(queuePtr->capacity);
-
-    if(pop == push) std::cout << "pop " << pop << " push " << push << std::endl; 
+    
     assert(pop != push);
     assert(dataPtr!=NULL);
     /* Need to resize */
     long newPush = (push + 1) % capacity;
     if (newPush == pop) {
-      printf("resize\n");
         long newCapacity = capacity * QUEUE_GROWTH_FACTOR;
         void** newElements = (void**)TM_MALLOC(newCapacity * sizeof(void*));
         if (newElements == NULL) {
@@ -441,13 +444,11 @@ TMqueue_push (TM_ARGDECL  queue_t* queuePtr, void* dataPtr)
         TM_SHARED_WRITE_L(queuePtr->capacity, newCapacity);
         push = dst;
         newPush = push + 1; /* no need modulo */
-
     }
 
     void** elements = (void**)TM_SHARED_READ_P(queuePtr->elements);
     TM_SHARED_WRITE_P(elements[push], dataPtr);
     TM_SHARED_WRITE_L(queuePtr->push, newPush);
-    //printf("dummy write %p \n", &(queuePtr->pop));
     //TM_SHARED_WRITE_L(queuePtr->pop, pop); //dummy write to pop
     
     return TRUE;
@@ -464,7 +465,7 @@ queue_pop (queue_t* queuePtr)
     long pop      = queuePtr->pop;
     long push     = queuePtr->push;
     long capacity = queuePtr->capacity;
-
+    
     long newPop = (pop + 1) % capacity;
     if (newPop == push) {
         return NULL;
@@ -487,16 +488,15 @@ TMqueue_pop (TM_ARGDECL  queue_t* queuePtr)
     long pop      = (long)TM_SHARED_READ_L(queuePtr->pop);
     long push     = (long)TM_SHARED_READ_L(queuePtr->push);
     long capacity = (long)TM_SHARED_READ_L(queuePtr->capacity);
-
+  
     long newPop = (pop + 1) % capacity;
     if (newPop == push) {
-        return NULL;
+      return NULL;
     }
 
     void** elements = (void**)TM_SHARED_READ_P(queuePtr->elements);
     void* dataPtr = (void*)TM_SHARED_READ_P(elements[newPop]);
     TM_SHARED_WRITE_L(queuePtr->pop, newPop);
-    if(dataPtr == NULL) printf("pop %li push %li \n", pop, push);
     return dataPtr;
 }
 

@@ -96,7 +96,6 @@
 #  warning "hash table resizing currently disabled for TM"
 #endif
 
-
 /* =============================================================================
  * hashtable_iter_reset
  * =============================================================================
@@ -311,6 +310,38 @@ TMallocBuckets (TM_ARGDECL
 extern "C"
 {
 
+/* ========
+ * Heiner Litz: Default comparators if map is used as RBtree replacement
+ *========*/
+long
+TMdefault_hashtable_compare (TM_ARGDECL const pair_t* a, const pair_t* b)
+{
+  if(a==NULL){
+    printf("oo dying bb == NULL\n");
+  }
+  volatile long bb = ((long)(b->firstPtr));
+  volatile long aa = (long)(a->firstPtr);
+
+  return bb-aa;
+}
+
+long
+default_hashtable_compare (const pair_t* a, const pair_t* b)
+{
+  return ((long)(b->firstPtr) - (long)(a->firstPtr));
+}
+
+static comparator_t default_hashtable_comparator(&default_hashtable_compare,
+						 &TMdefault_hashtable_compare);
+
+
+static ulong_t
+func_hash (const void* keyPtr)
+{
+  //  printf("ulong_t keyptr %lx\n", (ulong_t)keyPtr);
+    return ((ulong_t)keyPtr);
+}
+
 hashtable_t*
 hashtable_alloc (long initNumBucket,
                  ulong_t (*hash)(const void*),
@@ -318,11 +349,18 @@ hashtable_alloc (long initNumBucket,
                  long resizeRatio,
                  long growthFactor)
 {
+  if(comparePairs==NULL){
+    comparePairs = &default_hashtable_comparator;
+  }    
     hashtable_t* hashtablePtr;
-
+    resizeRatio = -1;
+    growthFactor = -1;
     hashtablePtr = (hashtable_t*)SEQ_MALLOC(sizeof(hashtable_t));
     if (hashtablePtr == NULL) {
         return NULL;
+    }
+    if(hash==NULL){
+      hash = &func_hash;
     }
 
     hashtablePtr->buckets = allocBuckets(initNumBucket, comparePairs);
@@ -360,6 +398,9 @@ TMhashtable_alloc (TM_ARGDECL
                    long resizeRatio,
                    long growthFactor)
 {
+  if(comparePairs==NULL){
+    comparePairs = &default_hashtable_comparator;
+  }    
     hashtable_t* hashtablePtr;
 
     hashtablePtr = (hashtable_t*)TM_MALLOC(sizeof(hashtable_t));
@@ -377,7 +418,7 @@ TMhashtable_alloc (TM_ARGDECL
 #ifdef HASHTABLE_SIZE_FIELD
     hashtablePtr->size = 0;
 #endif
-    hashtablePtr->hash = hash;
+    hashtablePtr->hash = hash;      
     hashtablePtr->comparePairs = comparePairs;
     hashtablePtr->resizeRatio = ((resizeRatio < 0) ?
                                   HASHTABLE_DEFAULT_RESIZE_RATIO : resizeRatio);
@@ -477,7 +518,8 @@ bool_t
 TMhashtable_isEmpty (TM_ARGDECL  hashtable_t* hashtablePtr)
 {
 #ifdef HASHTABLE_SIZE_FIELD
-    return ((TM_SHARED_READ(hashtablePtr->size) == 0) ? TRUE : FALSE);
+  //    return ((TM_SHARED_READ(hashtablePtr->size) == 0) ? TRUE : FALSE);
+    return ((hashtablePtr->size == 0) ? TRUE : FALSE);
 #else
     long i;
 
@@ -524,7 +566,8 @@ long
 TMhashtable_getSize (TM_ARGDECL  hashtable_t* hashtablePtr)
 {
 #ifdef HASHTABLE_SIZE_FIELD
-    return (long)TM_SHARED_READ(hashtablePtr->size);
+  //return (long)TM_SHARED_READ(hashtablePtr->size);
+  return (long)hashtablePtr->size;
 #else
     long i;
     long size = 0;
@@ -667,7 +710,6 @@ hashtable_insert (hashtable_t* hashtablePtr, void* keyPtr, void* dataPtr)
 #if defined(HASHTABLE_SIZE_FIELD) || defined(HASHTABLE_RESIZABLE)
     long newSize;
 #endif
-
     pair_t findPair;
     findPair.firstPtr = keyPtr;
     pair_t* pairPtr = (pair_t*)list_find(hashtablePtr->buckets[i], &findPair);
@@ -689,11 +731,12 @@ hashtable_insert (hashtable_t* hashtablePtr, void* keyPtr, void* dataPtr)
 #endif
 
 #ifdef HASHTABLE_RESIZABLE
+    printf("resie hashtable\n");
     /* Increase number of buckets to maintain size ratio */
     if (newSize >= (numBucket * hashtablePtr->resizeRatio)) {
         list_t** newBuckets = rehash(hashtablePtr);
         if (newBuckets == NULL) {
-            return FALSE;
+	  return FALSE;
         }
         freeBuckets(hashtablePtr->buckets, numBucket);
         numBucket *= hashtablePtr->growthFactor;
@@ -707,7 +750,7 @@ hashtable_insert (hashtable_t* hashtablePtr, void* keyPtr, void* dataPtr)
     /* Add new entry  */
     if (list_insert(hashtablePtr->buckets[i], insertPtr) == FALSE) {
         pair_free(insertPtr);
-        return FALSE;
+	return FALSE;
     }
 #ifdef HASHTABLE_SIZE_FIELD
     hashtablePtr->size = newSize;
@@ -747,11 +790,12 @@ TMhashtable_insert (TM_ARGDECL
     }
 
 #ifdef HASHTABLE_SIZE_FIELD
-    long newSize = TM_SHARED_READ(hashtablePtr->size) + 1;
+    //long newSize = TM_SHARED_READ(hashtablePtr->size) + 1;
+    long newSize = hashtablePtr->size + 1;
     assert(newSize > 0);
-    TM_SHARED_WRITE(hashtablePtr->size, newSize);
+    //TM_SHARED_WRITE(hashtablePtr->size, newSize);
+    hashtablePtr->size = newSize;
 #endif
-
     return TRUE;
 }
 
@@ -802,7 +846,6 @@ TMhashtable_remove (TM_ARGDECL  hashtable_t* hashtablePtr, void* keyPtr)
     list_t* chainPtr = hashtablePtr->buckets[i];
     pair_t* pairPtr;
     pair_t removePair;
-
     removePair.firstPtr = keyPtr;
     pairPtr = (pair_t*)TMLIST_FIND(chainPtr, &removePair);
     if (pairPtr == NULL) {
@@ -814,8 +857,8 @@ TMhashtable_remove (TM_ARGDECL  hashtable_t* hashtablePtr, void* keyPtr)
     TMPAIR_FREE(pairPtr);
 
 #ifdef HASHTABLE_SIZE_FIELD
-    TM_SHARED_WRITE(hashtablePtr->size
-                    (long)TM_SHARED_READ(hashtablePtr->size)-1);
+    //    TM_SHARED_WRITE(hashtablePtr->size                    (long)TM_SHARED_READ(hashtablePtr->size)-1);
+    hashtablePtr->size = hashtablePtr->size-1;
     assert(hashtablePtr->size >= 0);
 #endif
 

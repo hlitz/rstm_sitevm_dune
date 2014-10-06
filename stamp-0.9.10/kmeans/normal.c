@@ -316,8 +316,7 @@ normal_exec (int       nthreads,
         int cluster_size = sizeof(int) + sizeof(float) * nfeatures;
         const int cacheLineSize = 32;
         cluster_size += (cacheLineSize-1) - ((cluster_size-1) % cacheLineSize);
-        //alloc_memory = sitemalloc(nclusters* cluster_size);
-	printf("alloc mem %p %i %i\n", alloc_memory, nclusters*cluster_size, nclusters);
+        alloc_memory = sitemalloc(nclusters* cluster_size);
 	alloc_len = sitecalloc(nclusters, cluster_size);//sizeof(long long int));//cluster_size);
 	new_centers_len = (long long int**) SEQ_MALLOC(nclusters * sizeof(int*));
 

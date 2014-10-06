@@ -205,7 +205,7 @@ namespace stm
       // register this restart
       ++tx->num_restarts;
       // call the abort code
-      //std::cout << "txthread.cpp RESTART -> abort" << std::endl;
+      std::cout << "txthread.cpp RESTART " << std::endl;
       tx->tmabort(tx);
   }
 

@@ -86,6 +86,32 @@ static void*             global_argPtr          = NULL;
 static volatile bool_t   global_doShutdown      = FALSE;
 
 
+//
+#undef pthread_mutex_lock(x)
+#undef pthread_mutex_unlock(x)
+#define pthread_mutex_lock(x) hle_spinlock_acquire(x)
+#define pthread_mutex_unlock(x) hle_spinlock_release(x)
+
+
+void hle_spinlock_acquire(/*uint64_t**/pthread_mutex_t* lock){
+  //printf("lock acquhre\n");
+  while (__sync_lock_test_and_set((uint64_t*)lock, 1) != 0)
+    {
+      uint64_t val;
+      do {
+	//	_mm_pause();
+	val = __sync_val_compare_and_swap((uint64_t*)lock, 1, 1);
+      } while (val == 1);
+    }
+}
+
+
+void hle_spinlock_release(/*uint64_t**/ pthread_mutex_t* lock){
+  //printf("lock release\n");
+  __sync_lock_release((uint64_t*)lock);
+}
+
+
 /* =============================================================================
  * threadWait
  * -- Synchronizes all threads to start/stop parallel section
@@ -348,7 +374,6 @@ void barrier_cross(barrier_t *b) {
     pthread_mutex_lock(&b->mutex);
 /* One more thread through */
     b->crossing++;
-    printf("barr cross %i %d\n", b->count, b->crossing);
     /* If not all here, wait */
     int old_countset = b->countset;
     if (b->crossing < b->count){
@@ -362,7 +387,6 @@ void barrier_cross(barrier_t *b) {
       b->crossing = 0;
     }
     pthread_mutex_unlock(&b->mutex);
-    printf("barr cross exit %i\n", b->count);
 
     //   if (b->crossing < b->count) {
     //    pthread_cond_wait(&b->complete, &b->mutex);
@@ -390,14 +414,9 @@ thread_barrier_wait()
 #ifndef SIMULATOR
   long threadId = thread_getId();
 #endif /* !SIMULATOR */
-  printf("barrier--\n");
   sitevm_commit_and_update(sit_segment);
-  //sitevm_commit(sit_segment);
   THREAD_BARRIER(global_barrierPtr, threadId);
-  printf("call c&u\n");
   sitevm_commit_and_update(sit_segment);
-  //sitevm_update(sit_segment);
-  printf("barrier exit\n");
 }
 
 

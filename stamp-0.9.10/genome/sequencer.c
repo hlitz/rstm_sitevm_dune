@@ -244,13 +244,14 @@ void
 sequencer_run (void* argPtr)
 {
     TM_THREAD_ENTER();
+    //printf("enter barrier\n");
     thread_barrier_wait();
 
     long threadId = thread_getId();
     
-    if(threadId==0)
-      getchar();
-    thread_barrier_wait();
+    //    if(threadId==0)
+    //  getchar();
+    //thread_barrier_wait();
     
     sequencer_t* sequencerPtr = (sequencer_t*)argPtr;
 

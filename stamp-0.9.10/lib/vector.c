@@ -76,7 +76,16 @@
 #include "utility.h"
 #include "vector.h"
 
-
+//#define SITEVM_VECTOR
+#ifdef SITEVM_VECTOR
+#define sv_malloc(x) sitemalloc(x)
+#define sv_calloc(x, y) sitecalloc(x, y)
+#define sv_free(x) sitefree(x)
+#else
+#define sv_malloc(x) malloc(x)
+#define sv_calloc(x, y) calloc(x, y)
+#define sv_free(x) free(x)
+#endif
 /* =============================================================================
  * vector_alloc
  * -- Returns NULL if failed
@@ -88,12 +97,12 @@ vector_alloc (long initCapacity)
     vector_t* vectorPtr;
     long capacity = MAX(initCapacity, 1);
  
-    vectorPtr = (vector_t*)malloc(sizeof(vector_t));
+    vectorPtr = (vector_t*)sv_malloc(sizeof(vector_t));
 
     if (vectorPtr != NULL) {
         vectorPtr->size = 0;
         vectorPtr->capacity = capacity;
-        vectorPtr->elements = (void**)malloc(capacity * sizeof(void*));
+        vectorPtr->elements = (void**)sv_malloc(capacity * sizeof(void*));
         if (vectorPtr->elements == NULL) {
             return NULL;
         }
@@ -114,12 +123,12 @@ Pvector_alloc (long initCapacity)
     vector_t* vectorPtr;
     long capacity = MAX(initCapacity, 1);
 
-    vectorPtr = (vector_t*)malloc(sizeof(vector_t));
+    vectorPtr = (vector_t*)sv_malloc(sizeof(vector_t));
 
     if (vectorPtr != NULL) {
         vectorPtr->size = 0;
         vectorPtr->capacity = capacity;
-        vectorPtr->elements = (void**)malloc(capacity * sizeof(void*));
+        vectorPtr->elements = (void**)sv_malloc(capacity * sizeof(void*));
         if (vectorPtr->elements == NULL) {
             return NULL;
         }
@@ -136,8 +145,8 @@ Pvector_alloc (long initCapacity)
 void
 vector_free (vector_t* vectorPtr)
 {
-    SEQ_FREE(vectorPtr->elements);
-    SEQ_FREE(vectorPtr);
+    sv_free(vectorPtr->elements);
+    sv_free(vectorPtr);
 }
 
 
@@ -148,8 +157,9 @@ vector_free (vector_t* vectorPtr)
 void
 Pvector_free (vector_t* vectorPtr)
 {
-    P_FREE(vectorPtr->elements);
-    P_FREE(vectorPtr);
+  //  printf("vptr %p %i\n", vectorPtr, pthread_self());
+  sv_free(vectorPtr->elements);
+    sv_free(vectorPtr);
 }
 
 
@@ -180,7 +190,7 @@ vector_pushBack (vector_t* vectorPtr, void* dataPtr)
     if (vectorPtr->size == vectorPtr->capacity) {
         long i;
         long newCapacity = vectorPtr->capacity * 2;
-        void** newElements = (void**)malloc(newCapacity * sizeof(void*));
+        void** newElements = (void**)sv_malloc(newCapacity * sizeof(void*));
         if (newElements == NULL) {
             return FALSE;
         }
@@ -188,7 +198,7 @@ vector_pushBack (vector_t* vectorPtr, void* dataPtr)
         for (i = 0; i < vectorPtr->size; i++) {
             newElements[i] = vectorPtr->elements[i];
         }
-        SEQ_FREE(vectorPtr->elements);
+        sv_free(vectorPtr->elements);
         vectorPtr->elements = newElements;
     }
 
@@ -209,7 +219,7 @@ Pvector_pushBack (vector_t* vectorPtr, void* dataPtr)
     if (vectorPtr->size == vectorPtr->capacity) {
         long i;
         long newCapacity = vectorPtr->capacity * 2;
-        void** newElements = (void**)malloc(newCapacity * sizeof(void*));
+        void** newElements = (void**)sv_malloc(newCapacity * sizeof(void*));
         if (newElements == NULL) {
             return FALSE;
         }
@@ -217,7 +227,7 @@ Pvector_pushBack (vector_t* vectorPtr, void* dataPtr)
         for (i = 0; i < vectorPtr->size; i++) {
             newElements[i] = vectorPtr->elements[i];
         }
-        P_FREE(vectorPtr->elements);
+        sv_free(vectorPtr->elements);
         vectorPtr->elements = newElements;
     }
 
@@ -250,6 +260,8 @@ vector_popBack (vector_t* vectorPtr)
 long
 vector_getSize (vector_t* vectorPtr)
 {
+  //  printf("vector ptr %p tid: %i\n", vectorPtr, pthread_self());
+  //printf("vector ptr size %lu tid: %i\n", vectorPtr->size, pthread_self());
     return (vectorPtr->size);
 }
 
@@ -291,11 +303,11 @@ vector_copy (vector_t* dstVectorPtr, vector_t* srcVectorPtr)
     long srcSize = srcVectorPtr->size;
     if (dstCapacity < srcSize) {
         long srcCapacity = srcVectorPtr->capacity;
-        void** elements = (void**)malloc(srcCapacity * sizeof(void*));
+        void** elements = (void**)sv_malloc(srcCapacity * sizeof(void*));
         if (elements == NULL) {
             return FALSE;
         }
-        SEQ_FREE(dstVectorPtr->elements);
+        sv_free(dstVectorPtr->elements);
         dstVectorPtr->elements = elements;
         dstVectorPtr->capacity = srcCapacity;
     }
@@ -320,11 +332,11 @@ Pvector_copy (vector_t* dstVectorPtr, vector_t* srcVectorPtr)
     long srcSize = srcVectorPtr->size;
     if (dstCapacity < srcSize) {
         long srcCapacity = srcVectorPtr->capacity;
-        void** elements = (void**)malloc(srcCapacity * sizeof(void*));
+        void** elements = (void**)sv_malloc(srcCapacity * sizeof(void*));
         if (elements == NULL) {
             return FALSE;
         }
-        P_FREE(dstVectorPtr->elements);
+        sv_free(dstVectorPtr->elements);
         dstVectorPtr->elements = elements;
         dstVectorPtr->capacity = srcCapacity;
     }

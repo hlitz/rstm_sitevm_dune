@@ -234,7 +234,7 @@ initializeManager ()
     assert(managerPtr != NULL);
 
     numRelation = (long)global_params[PARAM_RELATIONS];
-    ids = (long*)malloc(numRelation * sizeof(long));
+    ids = (long*)SEQ_MALLOC(numRelation * sizeof(long));
     for (i = 0; i < numRelation; i++) {
         ids[i] = i + 1;
     }
@@ -434,7 +434,7 @@ MAIN(argc, argv)
     client_t** clients;
     TIMER_T startTime;
     TIMER_T stopTime;
-
+    printf("startup\n");
     /* Initialization */
     parseArgs(argc, (char** const)argv);
     SIM_GET_NUM_CPU(global_params[PARAM_CLIENTS]);
@@ -445,12 +445,13 @@ MAIN(argc, argv)
     TM_THREAD_ENTER();
    
     //sit_thread::sit_thread_barrier_wait(3);
-    TM_BEGIN();
+    //TM_BEGIN();
     managerPtr = initializeManager();
     assert(managerPtr != NULL);
+    printf("initializing clients\n");
     clients = initializeClients(managerPtr);
     assert(clients != NULL);
-    TM_END();
+    //TM_END();
     //    sit_thread::sit_thread_barrier_wait(4);
     thread_startup(numThread);
 

@@ -73,6 +73,7 @@
 #define PACKET_H 1
 
 #include "tm.h"
+#include "map.h"
 
 typedef struct packet {
     long flowId;
@@ -106,7 +107,6 @@ long
 packet_compareFragmentId (const void* aPtr, const void* bPtr);
 long
 TMpacket_compareFragmentId (TM_ARGDECL const void* aPtr, const void* bPtr);
-
 
 #endif /* PACKET_H */
 

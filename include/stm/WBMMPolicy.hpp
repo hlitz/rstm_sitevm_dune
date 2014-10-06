@@ -130,7 +130,7 @@ namespace stm
       void* txAlloc(size_t const &size)
       {
           void* ptr = sitemalloc(size);
-	  //printf("txAlloc %p\n", ptr); 
+	  //	  printf("-----------------------------------------------txAlloc %p meta %lx\n", ptr, *(((uint64_t*)ptr)-1)); 
           if ((*my_ts)&1)
               allocs.insert(ptr);
           return ptr;
@@ -153,8 +153,11 @@ namespace stm
       {
 	//	printf("on tx abort\n");
           AddressList::iterator i, e;
-          for (i = allocs.begin(), e = allocs.end(); i != e; ++i)
+          for (i = allocs.begin(), e = allocs.end(); i != e; ++i){
               sitefree(*i);
+	      //printf("------------------------------------------onTxAbort %p meta %lx\n", *i, *(((uint64_t*)*i)-1)); 
+		  
+	  }
           frees.reset();
           allocs.reset();
           *my_ts = 1+*my_ts;

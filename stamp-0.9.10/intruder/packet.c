@@ -72,7 +72,6 @@
 #include "packet.h"
 #include "types.h"
 
-
 /* =============================================================================
  * packet_compareFlowId
  * =============================================================================
@@ -96,7 +95,8 @@ packet_compareFragmentId (const void* aPtr, const void* bPtr)
 {
     packet_t* aPacketPtr = (packet_t*)aPtr;
     packet_t* bPacketPtr = (packet_t*)bPtr;
-
+    printf("a packet %p\n", aPacketPtr);
+    
     return (int)(aPacketPtr->fragmentId - bPacketPtr->fragmentId);
 }
 long
@@ -104,11 +104,10 @@ TMpacket_compareFragmentId (TM_ARGDECL const void* aPtr, const void* bPtr)
 {
     packet_t* aPacketPtr = (packet_t*)aPtr;
     packet_t* bPacketPtr = (packet_t*)bPtr;
-
+  
     return (int)(TM_SHARED_READ_L(aPacketPtr->fragmentId) -
                  TM_SHARED_READ_L(bPacketPtr->fragmentId));
 }
-
 
 /* =============================================================================
  *

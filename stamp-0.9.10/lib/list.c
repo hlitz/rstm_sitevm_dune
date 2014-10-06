@@ -707,7 +707,7 @@ list_remove (list_t* listPtr, void* dataPtr)
         (listPtr->comparator->compare_notm(nodePtr->dataPtr, dataPtr) == 0))
     {
         prevPtr->nextPtr = nodePtr->nextPtr;
-        nodePtr->nextPtr = NULL;
+        nodePtr->nextPtr = (struct list_node*)~0x0UL;//NULL;
         freeNode(nodePtr);
         listPtr->size--;
         assert(listPtr->size >= 0);
@@ -736,7 +736,7 @@ Plist_remove (list_t* listPtr, void* dataPtr)
         (listPtr->comparator->compare_notm(nodePtr->dataPtr, dataPtr) == 0))
     {
         prevPtr->nextPtr = nodePtr->nextPtr;
-        nodePtr->nextPtr = NULL;
+        nodePtr->nextPtr = (struct list_node*)~0x0UL;//NULL;
         PfreeNode(nodePtr);
         listPtr->size--;
         assert(listPtr->size >= 0);

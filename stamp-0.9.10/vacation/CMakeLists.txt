@@ -19,7 +19,8 @@ set(
   reservation.c
   vacation.c
   ../lib/list.c
-  ../lib/rbtree.c)
+  ../lib/hashtable.c)
+#  ../lib/rbtree.c)
 
 # build the different executables
 foreach (arch ${rstm_archs})

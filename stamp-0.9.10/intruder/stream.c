@@ -98,7 +98,7 @@ struct stream {
  * =============================================================================
  */
 stream_t*
-stream_alloc (long percentAttack)
+stream_alloc (long percentAttack, long numFlow)
 {
     stream_t* streamPtr;
 
@@ -112,8 +112,10 @@ stream_alloc (long percentAttack)
         assert(streamPtr->allocVectorPtr);
         streamPtr->packetQueuePtr = queue_alloc(-1);
         assert(streamPtr->packetQueuePtr);
-        streamPtr->attackMapPtr = MAP_ALLOC(NULL, NULL);
-        assert(streamPtr->attackMapPtr);
+	//        streamPtr->attackMapPtr = MAP_ALLOC(NULL, NULL);
+	printf("num attacksss %lx\n", (numFlow*percentAttack)/100);
+	streamPtr->attackMapPtr = hashtable_alloc((numFlow*percentAttack)/100, NULL, NULL, 2, 2);
+	assert(streamPtr->attackMapPtr);
     }
 
     return streamPtr;

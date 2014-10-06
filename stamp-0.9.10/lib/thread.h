@@ -125,7 +125,7 @@ extern "C" {
 #  define THREAD_BARRIER_INIT(bar, N)       thread_barrier_init(bar)
 #  define THREAD_BARRIER(bar, tid)          thread_barrier(bar, tid)
 #  define THREAD_BARRIER_FREE(bar)          thread_barrier_free(bar)
-#else
+#else //sitevm path
 #  define THREAD_BARRIER_T                  barrier_t
 #  define THREAD_BARRIER_ALLOC(N)           barrier_alloc()
 #  define THREAD_BARRIER_INIT(bar, N)       barrier_init(bar, N)

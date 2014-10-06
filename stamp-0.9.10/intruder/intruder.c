@@ -192,64 +192,65 @@ parseArgs (long argc, char* const argv[])
 void
 processPackets (void* argPtr)
 {
-    TM_THREAD_ENTER();
+  TM_THREAD_ENTER();
+  thread_barrier_wait();
+  long threadId = thread_getId();
 
-    long threadId = thread_getId();
+  stream_t*   streamPtr    = ((arg_t*)argPtr)->streamPtr;
+  decoder_t*  decoderPtr   = ((arg_t*)argPtr)->decoderPtr;
+  vector_t**  errorVectors = ((arg_t*)argPtr)->errorVectors;
 
-    stream_t*   streamPtr    = ((arg_t*)argPtr)->streamPtr;
-    decoder_t*  decoderPtr   = ((arg_t*)argPtr)->decoderPtr;
-    vector_t**  errorVectors = ((arg_t*)argPtr)->errorVectors;
-
-    detector_t* detectorPtr = PDETECTOR_ALLOC();
-    assert(detectorPtr);
-    PDETECTOR_ADDPREPROCESSOR(detectorPtr, &preprocessor_toLower);
-
-    vector_t* errorVectorPtr = errorVectors[threadId];
-
-    while (1) {
-
-        char* bytes;
-        TM_BEGIN();
-        bytes = TMSTREAM_GETPACKET(streamPtr);
-        TM_END();
-        if (!bytes) {
-            break;
-        }
-
-        packet_t* packetPtr = (packet_t*)bytes;
-        long flowId = packetPtr->flowId;
-
-        int_error_t error;
-        TM_BEGIN();
-        error = TMDECODER_PROCESS(decoderPtr,
-                                  bytes,
-                                  (PACKET_HEADER_LENGTH + packetPtr->length));
-        TM_END();
-        if (error) {
-            /*
-             * Currently, stream_generate() does not create these errors.
-             */
-            assert(0);
-            bool_t status = PVECTOR_PUSHBACK(errorVectorPtr, (void*)flowId);
-            assert(status);
-        }
-
-        char* data;
-        long decodedFlowId;
-        TM_BEGIN();
-        data = TMDECODER_GETCOMPLETE(decoderPtr, &decodedFlowId);
-        TM_END();
-        if (data) {
-            int_error_t error = PDETECTOR_PROCESS(detectorPtr, data);
-            P_FREE(data);
-            if (error) {
-                bool_t status = PVECTOR_PUSHBACK(errorVectorPtr,
-             (void*)decodedFlowId);
-                assert(status);
-      }
-        }
-
+  detector_t* detectorPtr = PDETECTOR_ALLOC();
+  assert(detectorPtr);
+  PDETECTOR_ADDPREPROCESSOR(detectorPtr, &preprocessor_toLower);
+  
+  vector_t* errorVectorPtr = errorVectors[threadId];
+  
+  while (1) {
+    char* bytes;
+    TM_BEGIN();
+    bytes = TMSTREAM_GETPACKET(streamPtr);
+    TM_END();
+    if (!bytes) {
+      break;
     }
+
+    packet_t* packetPtr = (packet_t*)bytes;
+    long flowId = packetPtr->flowId;
+
+    int_error_t error;
+    TM_BEGIN();
+    error = TMDECODER_PROCESS(decoderPtr,
+			      bytes,
+			      (PACKET_HEADER_LENGTH + packetPtr->length));
+    TM_END();
+    if (error) {
+      /*
+       * Currently, stream_generate() does not create these errors.
+       */
+      assert(0);
+      bool_t status = PVECTOR_PUSHBACK(errorVectorPtr, (void*)flowId);
+      assert(status);
+    }
+
+    char* data;
+    long decodedFlowId;
+    TM_BEGIN();
+    data = TMDECODER_GETCOMPLETE(decoderPtr, &decodedFlowId);
+    TM_END();
+    if (data) {
+          
+      int_error_t error = PDETECTOR_PROCESS(detectorPtr, data);
+      P_FREE(data);
+
+      if (error) {
+	bool_t status = PVECTOR_PUSHBACK(errorVectorPtr,
+					 (void*)decodedFlowId);
+	assert(status);
+      }
+    }
+   
+  }
 
     PDETECTOR_FREE(detectorPtr);
 
@@ -292,10 +293,9 @@ MAIN(argc, argv)
     printf("Random seed     = %li\n", randomSeed);
 
     TM_THREAD_ENTER();
-    TM_BEGIN();
     dictionaryPtr = dictionary_alloc();
     assert(dictionaryPtr);
-    streamPtr= stream_alloc(percentAttack);
+    streamPtr= stream_alloc(percentAttack, numFlow);
     assert(streamPtr);
     numAttack = stream_generate(streamPtr,
                                      dictionaryPtr,
@@ -304,7 +304,7 @@ MAIN(argc, argv)
                                      maxDataLength);
     printf("Num attack      = %li\n", numAttack);
 
-    decoderPtr= decoder_alloc();
+    decoderPtr= decoder_alloc(numFlow);
     assert(decoderPtr);
 
     errorVectors = (vector_t**)SEQ_MALLOC(numThread * sizeof(vector_t*));
@@ -318,7 +318,7 @@ MAIN(argc, argv)
     arg.streamPtr    = streamPtr;
     arg.decoderPtr   = decoderPtr;
     arg.errorVectors = errorVectors;
-  TM_END();
+ 
     /*
      * Run transactions
      */

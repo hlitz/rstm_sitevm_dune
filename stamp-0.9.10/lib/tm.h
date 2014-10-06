@@ -80,6 +80,8 @@
 # include "STAMP_config.h"
 #endif
 
+
+
 /* =============================================================================
  * Simulator Specific Interface
  *
@@ -432,7 +434,7 @@
 #      define TM_MALLOC(size)           sitemalloc(size)
 #      define TM_FREE(ptr)              sitefree(ptr) /* TODO: fix memory free problem with OpenTM */
 
-#    else /* !OTM */
+#    else /* !OTM This path we use for sitevm */
 
 #      define TM_STARTUP(numThread)     STM_STARTUP(numThread);
 #      define TM_SHUTDOWN()             STM_SHUTDOWN()

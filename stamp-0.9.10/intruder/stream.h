@@ -83,7 +83,7 @@ typedef struct stream stream_t;
  * =============================================================================
  */
 stream_t*
-stream_alloc (long percentAttack);
+stream_alloc (long percentAttack, long numFlow);
 
 
 /* =============================================================================

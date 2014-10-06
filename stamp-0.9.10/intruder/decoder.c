@@ -101,13 +101,15 @@ static comparator_t decoder_comparator(&packet_compareFragmentId,
  * =============================================================================
  */
 decoder_t*
-decoder_alloc ()
+decoder_alloc (long numFlow)
 {
     decoder_t* decoderPtr;
 
     decoderPtr = (decoder_t*)SEQ_MALLOC(sizeof(decoder_t));
     if (decoderPtr) {
-        decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
+      //decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
+      decoderPtr->fragmentedMapPtr = hashtable_alloc(numFlow, NULL, NULL, 2, 2);
+      decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
         assert(decoderPtr->fragmentedMapPtr);
         decoderPtr->decodedQueuePtr = queue_alloc(1024);
         assert(decoderPtr->decodedQueuePtr);

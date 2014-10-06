@@ -201,6 +201,8 @@ TMqueue_push (TM_ARGDECL  queue_t* queuePtr, void* dataPtr);
 void*
 queue_pop (queue_t* queuePtr);
 
+void
+printQueue (queue_t* queuePtr);
 
 /* =============================================================================
  * TMqueue_pop

@@ -9,12 +9,12 @@ void print_backtrace(){
   size_t size;
   char **strings;
     
-  printf("$$$$$$$$$$ backtrace %i $$$$$$$$\n", size);
+  printf("$$$$$$$$$$ backtrac $$$$$$$$\n");
   size = backtrace (array, 100);
   strings = backtrace_symbols (array, size);
   //std::cout << " ------------------ addr " << addr << std::endl;
   int i;
-  for(i =0; i< size; i++){
+  for(i =0; i< (int)size; i++){
     printf("%s\n",strings[i]);
     //    std::cout << strings[i] << std::endl;
     //std::string str(strings[i]);
@@ -40,29 +40,38 @@ void sitemallocinit(sitevm_seg_t* seg){
 void* sitemalloc(size_t size){
   void* address;
   address = sitevm_malloc::smalloc(size);
-  if((uint64_t)address<0x30000000000 || (uint64_t)address>0x30040000000){
+  /*if((uint64_t)address<0x30000000000 || (uint64_t)address>0x30040000000){
     static  int allocs = 0;
-    printf("LIBSITE MALLOC %p tid %i alloc nur %i\n",address, pthread_self(), allocs++);
+    printf("LIBSITE MALLOC %p tid %i alloc nur %i\n",address, (int)pthread_self(), allocs++);
     print_backtrace();
-  }
+    exit(-1);
+  }*/
+  //printf("address %p size %lx tid %i \n", address, size, pthread_self());
   return address;
 }
 
 void* sitecalloc(size_t num, size_t size){
-  void * ptr = sitevm_malloc::scalloc(num, size);
-  if((uint64_t)ptr<0x30000000000){
-    printf("LIBSITE CALLOC %p\n",ptr);
-  }  
+  void * address = sitevm_malloc::scalloc(num, size);
+  /*if((uint64_t)address<0x30000000000 || (uint64_t)address>0x30040000000){
+    static  int allocs = 0;
+    printf("LIBSITE MALLOC %p tid %i alloc nur %i\n",address, (int)pthread_self(), allocs++);
+    print_backtrace();
+    exit(-1);
+  }
+  for(int i=0;i<(int)size;i++){
+    *((char*)address) = 0;
+    }*/
 //  printf( "APP calloc: %x\n", (unsigned long long)ptr);
-  return ptr;
+  return address;
 }
 
 void sitefree(void * ptr){
-  if((uint64_t)ptr<0x30000000000 || (uint64_t)ptr>0x30040000000){
+  /*if((uint64_t)ptr<0x30000000000 || (uint64_t)ptr>0x30040000000){
     std::cout << "freeing small address " << std::hex << (uint64_t)ptr << std::endl;
     print_backtrace();
-    }
-  
+    exit(-1);
+  }
+  */
   //printf("LIBSITE FREE %p tid %i\n", ptr, pthread_self());
   sitevm_malloc::sfree(ptr);
   //printf("APP FREE %p", ptr);

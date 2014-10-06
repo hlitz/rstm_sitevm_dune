@@ -78,7 +78,7 @@
 #include "pair.h"
 #include "types.h"
 
-
+//always use hashtable
 #if defined(MAP_USE_HASHTABLE)
 
 #  include "hashtable.h"
@@ -91,6 +91,13 @@
 #  define MAP_INSERT(map, key, data)  hashtable_insert(map, (void*)(key), (void*)(data))
 #  define MAP_REMOVE(map, key)        hashtable_remove(map, (void*)(key))
 
+#  define TMMAP_CONTAINS(map, key)    TMhashtable_containsKey(TM_ARG map, (void*)(key))
+#  define TMMAP_FIND(map, key)        TMhashtable_find(TM_ARG map, (void*)key)
+#  define TMMAP_INSERT(map, key, data)      TMhashtable_insert(TM_ARG map, (void*)key, (void*)data)
+#  define TMMAP_REMOVE(map, key)            TMhashtable_remove(TM_ARG map, (void*)key)
+
+
+//#if defined(MAP_USE_RBTRE_NOT_THIS_TIME)
 #elif defined(MAP_USE_RBTRE_NOT_THIS_TIME)
 
 #  include "btree.h"
@@ -317,7 +324,7 @@
 
 #else
 
-#  error "MAP type is not specified"
+//#  error "MAP type is not specified"
 
 #endif
 
