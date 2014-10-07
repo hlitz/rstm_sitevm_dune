@@ -19,6 +19,7 @@
 #include <set>
 #include <string>
 #include "stm/lib_sitevm.h"
+#include <assert.h>
 
 using namespace std;
 using stm::TxThread;
@@ -91,6 +92,13 @@ inline uint64_t rdtsc()
   bool
   SITE_VM::begin(TxThread* tx)
   {
+    //Now commit and update, asserting false on error
+    //uint64_t before = rdtsc();
+    int result = sitevm_commit_and_update(sit_segment, NULL, SITEVM_CLOBBER);
+    assert(result == 0);
+    //printf("%ld\n", rdtsc() - before);
+    //printf("Clobbered in sitevm_begin\n");
+
     //promo_list_ptr[sit_thread::sit_gettid()] = 0x0UL;
     //std::cout << "Begin TRX"<< tx->id << std::endl;
     tx->txn++;
