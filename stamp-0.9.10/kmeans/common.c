@@ -85,7 +85,7 @@ common_euclidDist2 (float* pt1, float* pt2, int numdims)
     return ans;
 }
 
-
+#include <stdio.h>
 /* =============================================================================
  * common_findNearestPoint
  * =============================================================================
@@ -100,7 +100,7 @@ common_findNearestPoint (float*  pt,        /* [nfeatures] */
     int i;
     float max_dist = FLT_MAX;
     const float limit = 0.99999;
-
+   
     /* Find the cluster center id with min distance to pt */
     for (i = 0; i < npts; i++) {
         float dist;

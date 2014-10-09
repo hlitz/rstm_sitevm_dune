@@ -195,7 +195,6 @@ cluster_exec (
     float** tmp_cluster_centres;
     random_t* randomPtr;
     TM_THREAD_ENTER();
-    //TM_BEGIN();
     membership = (int*)SEQ_MALLOC(numObjects * sizeof(int));
     assert(membership);
 
@@ -207,7 +206,6 @@ cluster_exec (
     }
     
     itime = 0;
-    //TM_END();
     /*
      * From min_nclusters to max_nclusters, find best_nclusters
      */
@@ -223,7 +221,7 @@ cluster_exec (
                                           threshold,
                                           membership,
                                           randomPtr);
-	TM_BEGIN();
+	//TM_BEGIN();
         {
             if (*cluster_centres) {
                 SEQ_FREE((*cluster_centres)[0]);
@@ -235,12 +233,12 @@ cluster_exec (
         }
 	
         itime++;
-	TM_END();
+	//TM_END();
     } /* nclusters */
-    TM_BEGIN();
+    //TM_BEGIN();
     SEQ_FREE(membership);
     random_free(randomPtr);
-    TM_END();
+    //TM_END();
     return 0;
 }
 

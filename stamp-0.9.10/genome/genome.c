@@ -207,7 +207,7 @@ MAIN (argc,argv)
     P_MEMORY_STARTUP(numThread);
     TM_THREAD_ENTER();
 
-    TM_BEGIN();
+    //    TM_BEGIN();
     randomPtr= random_alloc();
     assert(randomPtr != NULL);
     random_seed(randomPtr, 0);
@@ -222,7 +222,7 @@ MAIN (argc,argv)
     segments_create(segmentsPtr, genePtr, randomPtr);
     sequencerPtr = sequencer_alloc(geneLength, segmentLength, segmentsPtr);
     assert(sequencerPtr != NULL);
-    TM_END();
+    //TM_END();
     thread_startup(numThread);
     puts("done.");
     printf("Gene length     = %li\n", genePtr->length);
@@ -247,7 +247,6 @@ MAIN (argc,argv)
 #else
     thread_start(sequencer_run, (void*)sequencerPtr);
 #endif
-    //sit_thread::sit_thread_barrier_wait(0);
     TIMER_READ(stop);
     // NB: As above, timer reads must be done inside of the simulated region
     //     for PTLSim/ASF
@@ -260,17 +259,17 @@ MAIN (argc,argv)
     {
       char* sequence;
       int result;
-      TM_BEGIN();
+      //TM_BEGIN();
       sequence= sequencerPtr->sequence;
       result = strcmp(gene, sequence);
-      TM_END();
-      printf("Sequence matches gene: %s\n", (result ? "no" : "yes"));
-      if (result) {
-	printf("gene     = %s\n", gene);
-	printf("sequence = %s\n", sequence);
-      }
-      fflush(stdout);
-      //assert(strlen(sequence) >= strlen(gene));
+      //TM_END();
+        printf("Sequence matches gene: %s\n", (result ? "no" : "yes"));
+        if (result) {
+            printf("gene     = %s\n", gene);
+            printf("sequence = %s\n", sequence);
+        }
+        fflush(stdout);
+        assert(strlen(sequence) >= strlen(gene));
     }
 
     /* Clean up */

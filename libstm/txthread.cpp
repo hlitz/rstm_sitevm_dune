@@ -421,7 +421,7 @@ namespace stm
           MetaInitializer<0>::init();
 
           // guess a default configuration, then check env for a better option
-          const char* cfg = "NOrec";
+          const char* cfg = "SITE_VM";
           const char* configstring = getenv("STM_CONFIG");
           if (configstring)
               cfg = configstring;
