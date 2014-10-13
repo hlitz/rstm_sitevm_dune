@@ -7,6 +7,7 @@
 # License: Modified BSD
 #          Please see the file LICENSE.RSTM for licensing information
 
+
 # This appears to be the recommended method for overriding the CMake default
 # compiler and linking rules and variables.
 set(CMAKE_USER_MAKE_RULES_OVERRIDE
@@ -113,3 +114,7 @@ if (CMAKE_USE_PTHREADS_INIT)
 else ()
   message (STATUS "Pthreads not found, will not build pthread apps.")
 endif ()
+
+append_cxxtm_flags("-mno-red-zone")
+append_cxx_flags("-mno-red-zone")
+append_c_flags("-mno-red-zone")

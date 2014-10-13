@@ -12,6 +12,9 @@ include (AddTargetDefinitions)
 include (AppendProperty)
 include (AppendFlags)
 
+append_cxx_flags("-mno-red-zone")
+append_c_flags("-mno-red-zone")
+
 set(
   sources
   dwyer.cpp
