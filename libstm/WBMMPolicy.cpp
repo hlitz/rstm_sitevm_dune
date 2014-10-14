@@ -30,6 +30,7 @@ pad_word_t stm::trans_nums[MAX_THREADS] = {{0}};
 //       mean it will not reclaim some things as early as it might otherwise?
 void WBMMPolicy::handle_full_prelimbo()
 {
+  return;
     // get the current timestamp from the epoch
     prelimbo->length = threadcount.val;
     for (uint32_t i = 0, e = prelimbo->length; i < e; ++i)
