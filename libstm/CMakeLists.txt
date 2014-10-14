@@ -8,10 +8,14 @@
 #          Please see the file LICENSE.RSTM for licensing information
 
 include (AppendProperty)
+include (AppendFlags)
   
 if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   append_property(SOURCE algs/bytelazy.cpp COMPILE_FLAGS -fno-strict-aliasing)
 endif ()
+
+append_cxx_flags("-mno-red-zone")
+append_c_flags("-mno-red-zone")
 
 set(sources
   lib_sitevm.cpp

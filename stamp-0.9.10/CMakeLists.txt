@@ -11,6 +11,9 @@ include (CustomAddExecutable)
 include (AddTargetDefinitions)
 include (AppendProperty)
 
+append_cxx_flags("-mno-red-zone")
+append_c_flags("-mno-red-zone")
+
 # This macro adds a stamp executable that uses stamp's STM interface and links
 # to libstm.a through the STM_API_STAMP interface.
 macro (add_stamp_executable exec name arch)

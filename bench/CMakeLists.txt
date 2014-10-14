@@ -13,6 +13,9 @@ include (AppendFlags)
 include (CustomAddExecutable)
 include (AddTargetDefinitions)
 
+append_cxx_flags("-mno-red-zone")
+append_c_flags("-mno-red-zone")
+
 # List the base benchmarks that we are going to build. We assume that each
 # benchmark consists of a file named <benchmark>.cpp, along with the
 # bmharness.cpp file. CMake is going to recompile bmharness.cpp for every
