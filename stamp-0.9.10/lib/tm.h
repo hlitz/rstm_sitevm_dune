@@ -450,8 +450,9 @@
 #      define SEQ_MALLOC(size)          sitemalloc(size)
 #      define SEQ_FREE(ptr)             sitefree(ptr)
 
-#      define TM_MALLOC(size)           TM_ALLOC(size)
-//#      define TM_FREE(ptr)              sitefree(ptr)
+#      define TM_MALLOC(size)           sitemalloc(size)
+					  //TM_ALLOC(size)
+					  //#      define TM_FREE(ptr)              sitefree(ptr)
 //#      define TM_FREE(ptr)              STM_FREE(ptr)
 #    endif /* !OTM */
 
@@ -651,20 +652,28 @@
 #  define STMREAD  stm::stm_read
 #  define STMREAD_PROMO  stm::stm_read_promo
 #  define STMWRITE stm::stm_write
-#  define thread_barrier_wait()      SITE_COMMIT();			\
-					  thread_barrier_wait();	\
-					  SITE_UPDATE()
+					  //#  define thread_barrier_wait()      SITE_COMMIT();	\
+					  //thread_barrier_wait();	\
+					  //SITE_UPDATE()
+#  define TM_SHARED_READ_I(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_READ_L(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_READ_P(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_READ_F(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
 
 
-#  define TM_SHARED_READ_I(var)         (var)
-#  define TM_SHARED_READ_L(var)         (var)
-#  define TM_SHARED_READ_P(var)         (var)
-#  define TM_SHARED_READ_F(var)         (var)
+					  //#  define TM_SHARED_READ_I(var)         (var)
+					  //#  define TM_SHARED_READ_L(var)         (var)
+					  //#  define TM_SHARED_READ_P(var)         (var)
+					  //#  define TM_SHARED_READ_F(var)         (var)
+#  define TM_SHARED_WRITE_I(var, val)   STMWRITE(&var, val, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_WRITE_L(var, val)   STMWRITE(&var, val, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_WRITE_P(var, val)   STMWRITE(&var, val, (stm::TxThread*)STM_SELF)
+#  define TM_SHARED_WRITE_F(var, val)   STMWRITE(&var, val, (stm::TxThread*)STM_SELF)
 
-#  define TM_SHARED_WRITE_I(var, val)   ({var = val; var;})
-#  define TM_SHARED_WRITE_L(var, val)   ({var = val; var;})
-#  define TM_SHARED_WRITE_P(var, val)   ({var = val; var;})
-#  define TM_SHARED_WRITE_F(var, val)   ({var = val; var;})
+					  //#  define TM_SHARED_WRITE_I(var, val)   ({var = val; var;})
+					  //#  define TM_SHARED_WRITE_L(var, val)   ({var = val; var;})
+					  //#  define TM_SHARED_WRITE_P(var, val)   ({var = val; var;})
+					  //#  define TM_SHARED_WRITE_F(var, val)   ({var = val; var;})
 
 #  define TM_LOCAL_WRITE_I(var, val)    ({var = val; var;})
 #  define TM_LOCAL_WRITE_L(var, val)    ({var = val; var;})

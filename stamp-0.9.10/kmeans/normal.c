@@ -194,10 +194,10 @@ work (void* argPtr)
     }
     //printf(" glob %f delta %f %p\n", *global_delta, delta, global_delta);
     TM_BEGIN();
-    float temp = *global_delta + delta;
+    //float temp = *global_delta + delta;
     //printf(" glob %f delta %f temp %f\n", *global_delta, delta, temp);
     //TM_SHARED_WRITE_F(*global_delta, TM_SHARED_READ_F(*global_delta) + delta);
-    *global_delta = delta;//temp;//*global_delta + delta;
+    *global_delta += delta;//temp;//*global_delta + delta;
     TM_END();
     //printf(" glob %f delta %f\n", *global_delta, delta);
    
@@ -313,9 +313,10 @@ normal_exec (int       nthreads,
 #else
         thread_start(work, &args);
 #endif
-
+	TM_BEGIN();
         delta = *global_delta;
-    
+	TM_END();
+	
         /* Replace old cluster centers with new_centers */
         for (i = 0; i < nclusters; i++) {
 	    for (j = 0; j < nfeatures; j++) {

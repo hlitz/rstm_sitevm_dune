@@ -107,9 +107,8 @@ decoder_alloc (long numFlow)
 
     decoderPtr = (decoder_t*)SEQ_MALLOC(sizeof(decoder_t));
     if (decoderPtr) {
+      decoderPtr->fragmentedMapPtr = hashtable_alloc(numFlow, NULL, NULL, 2, 2);
       //decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
-      //decoderPtr->fragmentedMapPtr = hashtable_alloc(numFlow, NULL, NULL, 2, 2);
-      decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
         assert(decoderPtr->fragmentedMapPtr);
         decoderPtr->decodedQueuePtr = queue_alloc(1024);
         assert(decoderPtr->decodedQueuePtr);
@@ -391,7 +390,10 @@ TMdecoder_process (TM_ARGDECL  decoder_t* decoderPtr, char* bytes, long numByte)
                 while (TMLIST_ITER_HASNEXT(&it, fragmentListPtr)) {
                     packet_t* fragmentPtr =
                         (packet_t*)TMLIST_ITER_NEXT(&it, fragmentListPtr);
-                    assert(fragmentPtr->flowId == flowId);
+                 
+		    if(fragmentPtr->flowId != flowId)
+		      printf("fragflow %lx floId %lx\n", fragmentPtr->flowId, flowId);
+		    assert(fragmentPtr->flowId == flowId);
                     if (fragmentPtr->fragmentId != i) {
                         status = TMMAP_REMOVE(fragmentedMapPtr, (void*)flowId);
                         assert(status);

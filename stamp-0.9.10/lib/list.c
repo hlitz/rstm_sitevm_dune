@@ -162,7 +162,8 @@ TMlist_iter_hasNext (TM_ARGDECL  list_iter_t* itPtr, list_t* listPtr)
 void*
 list_iter_next (list_iter_t* itPtr, list_t* listPtr)
 {
-    *itPtr = (*itPtr)->nextPtr;
+  assert(*itPtr!=NULL);
+   *itPtr = (*itPtr)->nextPtr;
 
     return (*itPtr)->dataPtr;
 }
@@ -175,8 +176,10 @@ list_iter_next (list_iter_t* itPtr, list_t* listPtr)
 void*
 TMlist_iter_next (TM_ARGDECL  list_iter_t* itPtr, list_t* listPtr)
 {
+  assert(*itPtr!=NULL);
     list_iter_t next = (list_iter_t)TM_SHARED_READ_P((*itPtr)->nextPtr);
-    TM_LOCAL_WRITE_P(*itPtr, next);
+    //    TM_LOCAL_WRITE_P(*itPtr, next);
+    TM_SHARED_WRITE_P(*itPtr, next);
 
     return TM_SHARED_READ_P(next->dataPtr);
 }
@@ -707,7 +710,7 @@ list_remove (list_t* listPtr, void* dataPtr)
         (listPtr->comparator->compare_notm(nodePtr->dataPtr, dataPtr) == 0))
     {
         prevPtr->nextPtr = nodePtr->nextPtr;
-        nodePtr->nextPtr = (struct list_node*)~0x0UL;//NULL;
+        nodePtr->nextPtr = (struct list_node*)0x0UL;//NULL;
         freeNode(nodePtr);
         listPtr->size--;
         assert(listPtr->size >= 0);
@@ -736,7 +739,7 @@ Plist_remove (list_t* listPtr, void* dataPtr)
         (listPtr->comparator->compare_notm(nodePtr->dataPtr, dataPtr) == 0))
     {
         prevPtr->nextPtr = nodePtr->nextPtr;
-        nodePtr->nextPtr = (struct list_node*)~0x0UL;//NULL;
+        nodePtr->nextPtr = (struct list_node*)0x0UL;//NULL;
         PfreeNode(nodePtr);
         listPtr->size--;
         assert(listPtr->size >= 0);
@@ -765,7 +768,7 @@ TMlist_remove (TM_ARGDECL  list_t* listPtr, void* dataPtr)
         (listPtr->comparator->compare_tm(TM_ARG TM_SHARED_READ_P(nodePtr->dataPtr), dataPtr) == 0))
     {
         TM_SHARED_WRITE_P(prevPtr->nextPtr, TM_SHARED_READ_P(nodePtr->nextPtr));
-        TM_SHARED_WRITE_P(nodePtr->nextPtr, (struct list_node*)~0x0UL);
+        TM_SHARED_WRITE_P(nodePtr->nextPtr, (struct list_node*)0x0UL);
         TMfreeNode(TM_ARG  nodePtr);
         TM_SHARED_WRITE_L(listPtr->size, (TM_SHARED_READ_L(listPtr->size) - 1));
         assert(listPtr->size >= 0);

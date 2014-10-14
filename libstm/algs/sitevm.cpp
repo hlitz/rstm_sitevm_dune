@@ -34,6 +34,33 @@ sitevm_malloc* sitevm_segment_malloc;
 const bool DEBUG_BACKTRACE = false;//true;
 const bool BENCH = true;
 const bool MVCC = false;
+
+void print_backtrace_si(){
+  void *array[100];
+  size_t size;
+  char **strings;
+    
+  printf("----------- backtrac $$$$$$$$\n");
+  size = backtrace (array, 100);
+  strings = backtrace_symbols (array, size);
+  //std::cout << " ------------------ addr " << addr << std::endl;
+  int i;
+  for(i =0; i< (int)size; i++){
+    printf("%s\n",strings[i]);
+    //    std::cout << strings[i] << std::endl;
+    //std::string str(strings[i]);
+    /*   if(uint32_t pos = str.find(filename)!=std::string::npos){
+      pos = str.find("[0x", pos);
+      uint32_t posend = str.find("]", pos);
+      std::string substr = str.substr(pos+1, posend-1);
+      //std::cout << " char " << strings[i] << " extract " << substr << endl;
+      result = std::stoi(substr, nullptr, 16);
+      //std::cout << " char " << strings[i] << " extract " << substr << " int "<< hex << result << std::endl;
+      break;
+      }*/
+  }
+}
+
 //const uint64_t PROMO_LIST_SIZE = 1024;
 
 //uint64_t* promo_list[MAX_SITE_THREADS];
@@ -240,6 +267,10 @@ inline uint64_t rdtsc()
   SITE_VM::read_ro(STM_READ_SIG(tx,addr,))
   {
     //promo_inc((char*)addr);
+    if((uint64_t)addr<0x10000){
+      cout << "ADDR: " << addr << endl;
+      print_backtrace_si();
+  }
     //    cout << "read ro " << sit_thread::sit_gettid() << endl;
     return *addr;
     /*
@@ -300,6 +331,11 @@ inline uint64_t rdtsc()
   SITE_VM::read_rw(STM_READ_SIG(tx,addr,mask))
   {
 
+    if((uint64_t)addr<0x10000){
+      cout << "ADDR: " << addr << endl;
+      print_backtrace_si();
+    }
+
     return *addr;
     /*
     uint64_t data;
@@ -336,6 +372,10 @@ inline uint64_t rdtsc()
   void
   SITE_VM::write_ro(STM_WRITE_SIG(tx,addr,val,mask))
   {
+    if((uint64_t)addr<0x10000){
+      cout << "Write ADDR: " << addr << endl;
+      print_backtrace_si();
+    }
     //cout << "write ro " << endl;
     /*
     uint64_t codeline = 0;
@@ -359,6 +399,10 @@ inline uint64_t rdtsc()
   void
   SITE_VM::write_rw(STM_WRITE_SIG(tx,addr,val,mask))
   {   
+    if((uint64_t)addr<0x10000){
+      cout << "Write ADDR: " << addr << endl;
+      print_backtrace_si();
+    }
     //    cout << "write rw " << sit_thread::sit_gettid() << " address " << addr << " data " << val << endl;
     //cout << "write rw " << endl;
 

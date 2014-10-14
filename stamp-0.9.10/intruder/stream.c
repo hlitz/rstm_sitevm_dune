@@ -113,8 +113,8 @@ stream_alloc (long percentAttack, long numFlow)
         streamPtr->packetQueuePtr = queue_alloc(-1);
         assert(streamPtr->packetQueuePtr);
 	//printf("num attacksss %lx\n", (numFlow*percentAttack)/100);
-	streamPtr->attackMapPtr = MAP_ALLOC(NULL, NULL);
-	//streamPtr->attackMapPtr = hashtable_alloc((numFlow*percentAttack)/100, NULL, NULL, 2, 2);
+	//streamPtr->attackMapPtr = MAP_ALLOC(NULL, NULL);
+	streamPtr->attackMapPtr = hashtable_alloc((numFlow*percentAttack)/100, NULL, NULL, 2, 2);
 	assert(streamPtr->attackMapPtr);
     }
 

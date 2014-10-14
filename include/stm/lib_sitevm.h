@@ -7,7 +7,8 @@
 #include "sitevm/sitevm_malloc.h"
 //#include "sit_thread.h"
 #define MAX_SITE_THREADS 64
-#define SITEVM_SEG_SIZE 1024*1024*1024
+#define SITEVM_SEG_SIZE 0x1000000000
+//1024*1024*1024
 //0x100000000
 extern sitevm_seg_t* sit_segment;
 //extern sit_seg* sit_segment_promo;
