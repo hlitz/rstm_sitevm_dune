@@ -205,8 +205,10 @@ bool DList::remove(int val TM_ARG){
             Node* after(TM_READ(curr->m_next));
             TM_WRITE(before->m_next, after);
             TM_WRITE(after->m_prev, before);
-
-            // delete curr...
+	    //dummy writes
+	    TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
+	    TM_WRITE(((Node*)curr)->m_prev, (Node*)NULL); //dummy write
+	    // delete curr...
             TM_FREE(const_cast<Node*>(curr));
             return true;
             break;

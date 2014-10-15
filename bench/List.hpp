@@ -240,7 +240,7 @@ bool List::remove(int val TM_ARG)
         if (TM_READ(curr->m_val) == val) {
             Node* mod_point = const_cast<Node*>(prev);
             TM_WRITE(mod_point->m_next, TM_READ(curr->m_next));
-	    TM_WRITE(((Node*)curr)->m_next, (Node*)sentinel); //dummy write
+	    TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
 
             // delete curr...
             TM_FREE(const_cast<Node*>(curr));
