@@ -618,9 +618,6 @@
 #  define STMREAD  stm::stm_read
 #  define STMREAD_PROMO  stm::stm_read_promo
 #  define STMWRITE stm::stm_write
-#  define thread_barrier_wait()      SITE_COMMIT();			\
-					  thread_barrier_wait();	\
-					  SITE_UPDATE()
 
 #  define TM_SHARED_READ_I(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
 #  define TM_SHARED_READ_L(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
@@ -652,9 +649,6 @@
 #  define STMREAD  stm::stm_read
 #  define STMREAD_PROMO  stm::stm_read_promo
 #  define STMWRITE stm::stm_write
-					  //#  define thread_barrier_wait()      SITE_COMMIT();	\
-					  //thread_barrier_wait();	\
-					  //SITE_UPDATE()
 #  define TM_SHARED_READ_I(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
 #  define TM_SHARED_READ_L(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)
 #  define TM_SHARED_READ_P(var)    STMREAD(&var, (stm::TxThread*)STM_SELF)

@@ -230,11 +230,12 @@ initializeManager ()
     randomPtr = random_alloc();
     assert(randomPtr != NULL);
 
-    managerPtr = manager_alloc();
-    assert(managerPtr != NULL);
-
     numRelation = (long)global_params[PARAM_RELATIONS];
     ids = (long*)SEQ_MALLOC(numRelation * sizeof(long));
+
+    managerPtr = manager_alloc(numRelation);
+    assert(managerPtr != NULL);
+
     for (i = 0; i < numRelation; i++) {
         ids[i] = i + 1;
     }
@@ -410,19 +411,6 @@ freeClients (client_t** clients)
         client_free(clientPtr);
     }
 }
-inline uint64_t rdtsc()
-{
-    uint32_t lo, hi;
-    __asm__ __volatile__ (
-      "xorl %%eax, %%eax\n"
-      "cpuid\n"
-      "rdtscp\n"
-      : "=a" (lo), "=d" (hi)
-      :
-      : "%ebx", "%ecx" );
-    return (uint64_t)hi << 32 | lo;
-}
-
 
 /* =============================================================================
  * main
@@ -443,7 +431,7 @@ MAIN(argc, argv)
     TM_STARTUP(numThread);
     P_MEMORY_STARTUP(numThread);
     TM_THREAD_ENTER();
-   
+    TM_BEGIN();
     //sit_thread::sit_thread_barrier_wait(3);
     //TM_BEGIN();
     managerPtr = initializeManager();
@@ -454,7 +442,7 @@ MAIN(argc, argv)
     //TM_END();
     //    sit_thread::sit_thread_barrier_wait(4);
     thread_startup(numThread);
-
+    TM_END();
     /* Run transactions */
     printf("Running clients...\n ");
     fflush(stdout);

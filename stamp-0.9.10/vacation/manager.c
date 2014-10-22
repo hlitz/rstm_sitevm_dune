@@ -102,9 +102,13 @@ addReservation (TM_ARGDECL  MAP_T* tablePtr, long id, long num, long price);
  * =============================================================================
  */
 static MAP_T*
-tableAlloc ()
+tableAlloc (long numRelation)
 {
+  #ifdef MAP_USE_RBTREE
     return MAP_ALLOC(NULL, NULL);
+    #else
+    return hashtable_alloc(numRelation/2, NULL, NULL, 2, 2);
+#endif
 }
 
 
@@ -113,17 +117,17 @@ tableAlloc ()
  * =============================================================================
  */
 manager_t*
-manager_alloc ()
+manager_alloc (long numRelation)
 {
     manager_t* managerPtr;
 
     managerPtr = (manager_t*)SEQ_MALLOC(sizeof(manager_t));
     assert(managerPtr != NULL);
 
-    managerPtr->carTablePtr = tableAlloc();
-    managerPtr->roomTablePtr = tableAlloc();
-    managerPtr->flightTablePtr = tableAlloc();
-    managerPtr->customerTablePtr = tableAlloc();
+    managerPtr->carTablePtr = tableAlloc(numRelation);
+    managerPtr->roomTablePtr = tableAlloc(numRelation);
+    managerPtr->flightTablePtr = tableAlloc(numRelation);
+    managerPtr->customerTablePtr = tableAlloc(numRelation);
     assert(managerPtr->carTablePtr != NULL);
     assert(managerPtr->roomTablePtr != NULL);
     assert(managerPtr->flightTablePtr != NULL);

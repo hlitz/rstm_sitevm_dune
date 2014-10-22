@@ -160,7 +160,6 @@ client_run (void* argPtr)
    
     long myId = thread_getId();
     client_t* clientPtr = ((client_t**)argPtr)[myId];
-
     manager_t* managerPtr = clientPtr->managerPtr;
     random_t*  randomPtr  = clientPtr->randomPtr;
 

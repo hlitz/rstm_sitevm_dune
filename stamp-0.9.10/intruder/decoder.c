@@ -107,9 +107,13 @@ decoder_alloc (long numFlow)
 
     decoderPtr = (decoder_t*)SEQ_MALLOC(sizeof(decoder_t));
     if (decoderPtr) {
+      printf("hastable alloc size %lx\n", numFlow);
+#ifdef MAP_USE_RBTREE
+      decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
+#else
       decoderPtr->fragmentedMapPtr = hashtable_alloc(numFlow, NULL, NULL, 2, 2);
-      //decoderPtr->fragmentedMapPtr = MAP_ALLOC(NULL, NULL);
-        assert(decoderPtr->fragmentedMapPtr);
+#endif
+      assert(decoderPtr->fragmentedMapPtr);
         decoderPtr->decodedQueuePtr = queue_alloc(1024);
         assert(decoderPtr->decodedQueuePtr);
     }

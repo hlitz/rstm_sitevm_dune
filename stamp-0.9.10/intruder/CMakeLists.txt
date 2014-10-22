@@ -32,7 +32,7 @@ set(
 # build the different executables
 foreach (arch ${rstm_archs})
   add_stamp_executable(exec intruder ${arch} ${sources})
-  #add_target_definitions(${exec} MAP_USE_RBTREE)
+#  add_target_definitions(${exec} MAP_USE_RBTREE)
   add_target_definitions(${exec} MAP_USE_HASHTABLE)
-  add_target_definitions(${exec} HASHTABLE_SIZE_FIELD)
+#  add_target_definitions(${exec} HASHTABLE_SIZE_FIELD)
 endforeach ()
