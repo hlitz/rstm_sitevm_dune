@@ -81,7 +81,6 @@ inline void print_bt(){
  */
 #define STM_BEGIN_WR()                                                  \
     {                                                                   \
-    /*int commit_res_sitevm =*/ sitevm_commit_and_update(sit_segment);	\
     /*if(commit_res_sitevm!=0) {printf("Data race! Sitevm conflict outside of TX\n"); print_bt();}*/ \
     jmp_buf jmpbuf_;							\
     uint32_t abort_flags = setjmp(jmpbuf_);                             \

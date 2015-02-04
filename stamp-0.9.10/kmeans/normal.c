@@ -142,12 +142,11 @@ work (void* argPtr)
     int start;
     int stop;
     int myId;
-    bool indexx[1000];
 
     myId = thread_getId();
 
     start = myId * CHUNK;
-    int cnt=0;
+
     while (start < npoints) {
         stop = (((start + CHUNK) < npoints) ? (start + CHUNK) : npoints);
 
@@ -193,12 +192,12 @@ work (void* argPtr)
         }
     }
     //printf(" glob %f delta %f %p\n", *global_delta, delta, global_delta);
-    TM_BEGIN();
+    //TM_BEGIN();
     //float temp = *global_delta + delta;
     //printf(" glob %f delta %f temp %f\n", *global_delta, delta, temp);
     //TM_SHARED_WRITE_F(*global_delta, TM_SHARED_READ_F(*global_delta) + delta);
     *global_delta += delta;//temp;//*global_delta + delta;
-    TM_END();
+    //TM_END();
     //printf(" glob %f delta %f\n", *global_delta, delta);
    
     TM_THREAD_EXIT();
@@ -232,7 +231,7 @@ normal_exec (int       nthreads,
     TIMER_T start;
     TIMER_T stop;
     TM_THREAD_ENTER();
-    TM_BEGIN();
+    //TM_BEGIN();
     /* Allocate space for returning variable clusters[] */
     clusters = (float**)SEQ_MALLOC(nclusters * sizeof(float*));
     assert(clusters);
@@ -282,7 +281,7 @@ normal_exec (int       nthreads,
 
     global_i = (long*)sitemalloc(sizeof(long));
     global_delta = (float*)sitemalloc(sizeof(float));
-    TM_END();
+    //TM_END();
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark

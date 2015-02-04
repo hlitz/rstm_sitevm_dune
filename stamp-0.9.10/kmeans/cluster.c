@@ -148,7 +148,7 @@ zscoreTransform (float** data, /* in & out: [numObjects][numAttributes] */
     float* moments;
     int i;
     int j;
-    int t = pthread_self();
+
     single_variable = (float*)sitecalloc(numObjects, sizeof(float));
     assert(single_variable);
     for (i = 0; i < numAttributes; i++) {

@@ -90,8 +90,8 @@ typedef unsigned long ulong_t;
 #define FALSE 0L
 #define TRUE 1L
 
-#define bool_t long
-
+  //#define bool_t long
+  //typedef long bool_t;
 
 #ifdef __cplusplus
 }

@@ -122,7 +122,6 @@ hashString (char* str)
 {
     ulong_t hash = 0;
     long c;
-
     /* Note: Do not change this hashing scheme */
     while ((c = *str++) != '\0') {
         hash = c + (hash << 6) + (hash << 16) - hash;
@@ -256,6 +255,7 @@ sequencer_run (void* argPtr)
     table_t*          hashToConstructEntryTable;
 
     uniqueSegmentsPtr               = sequencerPtr->uniqueSegmentsPtr;
+    printf("unique segmentsbptr %p\n", uniqueSegmentsPtr);
     endInfoEntries                  = sequencerPtr->endInfoEntries;
     startHashToConstructEntryTables = sequencerPtr->startHashToConstructEntryTables;
     constructEntries                = sequencerPtr->constructEntries;
@@ -517,6 +517,8 @@ sequencer_run (void* argPtr)
                                 (long)TM_SHARED_READ_L(startConstructEntryPtr->length) -
                                 substringLength;
                     TM_SHARED_WRITE_L(endConstructEntry_startPtr->length, newLength);
+		    newLength = 0;
+                    TM_SHARED_WRITE_L(startConstructEntryPtr->length, newLength); //dummy write
                 } /* if (matched) */
 
                 TM_END();
@@ -551,6 +553,10 @@ sequencer_run (void* argPtr)
                 if (endInfoEntries[0].isEnd) {
                     constructEntry_t* constructEntryPtr = &constructEntries[0];
                     char* segment = constructEntryPtr->segment;
+		    printf("hash string %p %p seg[index] %p index %lx\n", constructEntryPtr, &constructEntryPtr->segment, &segment[index], index);
+		    uint64_t temp = 0x300000d5f70UL;
+		    printf("\n APP end dump 0x300000d5f70: %lx\n", *(uint64_t*)temp);
+
                     constructEntryPtr->endHash = (ulong_t)hashString(&segment[index]);
                 }
                 /* Continue scanning (do not reset i) */
@@ -621,6 +627,7 @@ sequencer_run (void* argPtr)
         assert(sequence != NULL);
         sequence[sequenceLength] = '\0';
     }
+    thread_barrier_wait();
 
     TM_THREAD_EXIT();
 }

@@ -192,7 +192,7 @@ MAIN(argc, argv)
     TM_STARTUP(nthreads);
     P_MEMORY_STARTUP(numThread);
     TM_THREAD_ENTER();
-    TM_BEGIN();
+    //TM_BEGIN();
    
     line = (char*)SEQ_MALLOC(MAX_LINE_LENGTH); /* reserve memory line */
 
@@ -218,9 +218,9 @@ MAIN(argc, argv)
             fprintf(stderr, "Error: no such file (%s)\n", filename);
             exit(1);
         }
-        read(infile, &numObjects, sizeof(int));
-        read(infile, &numAttributes, sizeof(int));
-
+        int ret = read(infile, &numObjects, sizeof(int));
+        ret |= read(infile, &numAttributes, sizeof(int));
+	assert(!ret);
         /* Allocate space for attributes[] and read attributes of all objects */
         buf = (float*)SEQ_MALLOC(numObjects * numAttributes * sizeof(float));
         assert(buf);
@@ -231,8 +231,9 @@ MAIN(argc, argv)
         for (i = 1; i < numObjects; i++) {
             attributes[i] = attributes[i-1] + numAttributes;
         }
-        read(infile, buf, (numObjects * numAttributes * sizeof(float)));
-        close(infile);
+        ret = read(infile, buf, (numObjects * numAttributes * sizeof(float)));
+        assert(!ret);
+	close(infile);
     } else {
         FILE *infile;
         if ((infile = fopen(filename, "r")) == NULL) {
@@ -288,16 +289,18 @@ MAIN(argc, argv)
 
     nloops = 1;
     len = max_nclusters - min_nclusters + 1;
-    TM_END();
+    //TM_END();
     thread_startup(nthreads);
     for (i = 0; i < nloops; i++) {
         /*
          * Since zscore transform may perform in cluster() which modifies the
          * contents of attributes[][], we need to re-store the originals
          */
+      //TM_BEGIN();
       memcpy(attributes[0], buf, (numObjects * numAttributes * sizeof(float)));
       //thread_barrier_wait();
       cluster_centres = NULL;
+      //TM_END();
       cluster_exec(nthreads,
                      numObjects,
                      numAttributes,

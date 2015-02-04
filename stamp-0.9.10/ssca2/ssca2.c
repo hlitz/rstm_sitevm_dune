@@ -148,7 +148,6 @@ MAIN(argc, argv)
     SIM_GET_NUM_CPU(THREADS);
     TM_STARTUP(THREADS);
     P_MEMORY_STARTUP(THREADS);
-    thread_startup(THREADS);
     
     puts("");
     printf("Number of processors:       %ld\n", THREADS);
@@ -220,18 +219,19 @@ MAIN(argc, argv)
      */
 
     printf("\nKernel 1 - computeGraph() beginning execution...\n");
-    //TM_BEGIN();
+    TM_BEGIN();
     G = (graph*)SEQ_MALLOC(sizeof(graph));
     assert(G);
 
     computeGraphArgs.GPtr       = G;
     computeGraphArgs.SDGdataPtr = SDGdata;
     computeGraphAlloc((void*)&computeGraphArgs);
-    //TM_END();
+    TM_END();
     // NB: Since ASF/PTLSim "REAL" is native execution, and since we are using
     //     wallclock time, we want to be sure we read time inside the
     //     simulator, or else we report native cycles spent on the benchmark
     //     instead of simulator cycles.
+    thread_startup(THREADS);
     GOTO_SIM();
     TIMER_READ(start);
     //    thread_barrier_wait();

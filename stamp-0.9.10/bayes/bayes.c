@@ -247,7 +247,6 @@ MAIN(argc, argv)
     SIM_GET_NUM_CPU(numThread);
     TM_STARTUP(numThread);
     P_MEMORY_STARTUP(numThread);
-    thread_startup(numThread);
     TM_THREAD_ENTER();
 
     printf("Random seed                = %li\n", randomSeed);
@@ -323,6 +322,7 @@ MAIN(argc, argv)
     assert(learnerPtr);
     data_free(dataPtr); /* save memory */
     TM_END();
+    thread_startup(numThread);
     printf("Learning structure...");
     fflush(stdout);
 

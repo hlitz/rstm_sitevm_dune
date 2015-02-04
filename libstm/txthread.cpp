@@ -7,7 +7,7 @@
  * License: Modified BSD
  *          Please see the file LICENSE.RSTM for licensing information
  */
- 
+
 #include <setjmp.h>
 #include <iostream>
 #include <stm/txthread.hpp>
@@ -40,7 +40,6 @@ namespace
   NORETURN void
   default_abort_handler(TxThread* tx)
   {
-    //    std::cout << "bort jmpbuf --------------" << std::endl;
       jmp_buf* scope = (jmp_buf*)TxThread::tmrollback(tx
 #if defined(STM_ABORT_ON_THROW)
                                                       , NULL, 0
@@ -93,7 +92,6 @@ namespace stm
               break;
           spin64();
       }
-      
 
       // We need to be very careful here.  Some algorithms (at least TLI and
       // NOrecPrio) like to let a thread look at another thread's TxThread
@@ -186,13 +184,18 @@ namespace stm
   /*** the init factory */
   void TxThread::thread_init()
   {
-    // multiple inits from one thread do not cause trouble
-    if (Self) return;
-    
-    // create a TxThread and save it in thread-local storage
-    Self = new TxThread();
-    sitevm_enter();
-    sitevm_open_and_update(sit_segment);
+        printf("call_thread_init\n ");
+      // multiple inits from one thread do not cause trouble
+      if (Self) return;
+
+      // create a TxThread and save it in thread-local storage
+      Self = new TxThread();
+      //moved to stamps thread.c
+      //static bool sitevm_master_thread = true;
+      //if(sitevm_master_thread){
+      //sitevm_master_thread = false;
+	sitevm::sitevm_enter();
+	//}
   }
 
   /**
@@ -215,10 +218,10 @@ namespace stm
    */
   void sys_shutdown()
   {
-    static volatile unsigned int mtx = 0;
+      static volatile unsigned int mtx = 0;
       
       //sit_thread::sit_thread_shutdown();
-    sitevm_exit();
+    sitevm::sitevm_exit();
       while (!bcas32(&mtx, 0u, 1u)) { }
 
       uint64_t nontxn_count = 0;                // time outside of txns
@@ -240,7 +243,7 @@ namespace stm
       }
       txn_count = rw_txns + ro_txns;
       pct_ro = (!txn_count) ? 0 : (100 * ro_txns) / txn_count;
-      
+
       /* std::ofstream myfile, myfiletxn;
       myfile.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews.txt");
       myfiletxn.open ("/home/hlitz/sourcecode/zsim_git/zsim/zsim/writeskews_txn.txt");
@@ -414,7 +417,7 @@ namespace stm
       static volatile uint32_t mtx = 0;
       //sit_thread::sit_thread_init();
       //sitevm::sitevm_init();
-      sitevm_init();
+      sitevm::sitevm_init();
       if (bcas32(&mtx, 0u, 1u)) {
           // manually register all behavior policies that we support.  We do
           // this via tail-recursive template metaprogramming

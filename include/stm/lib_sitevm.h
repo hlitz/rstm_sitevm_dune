@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "sitevm/sitevm.h"
 //#include "sit_seg.h"
-#include "sitevm/sitevm_malloc.h"
+//#include "sitevm/sitevm_malloc.h"
 //#include "sit_thread.h"
 #define MAX_SITE_THREADS 64
 #define SITEVM_SEG_SIZE 0x1000000000

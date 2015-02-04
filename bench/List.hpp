@@ -14,6 +14,8 @@
 #define XBEGIN asm(" movl $1028, %ecx\n\t"  "xchg %rcx, %rcx")
 #define XEND asm(" movl $1029, %ecx\n\t"  "xchg %rcx, %rcx")
 
+#undef TM_READ
+#define TM_READ(x) (x)
 // We construct other data structures from the List. In order to do their
 // sanity checks correctly, we might need to pass in a validation function of
 // this type
@@ -161,10 +163,11 @@ bool List::insert(int val TM_ARG)
     const Node* curr(TM_READ(prev->m_next));
     //std::cout << "insert" << std::endl;
     while (curr != NULL) {
+      //      std::cout << curr->m_val << " curr mval " << std::endl;
         if (TM_READ(curr->m_val) >= val)
             break;
         prev = curr;
-        curr = TM_READ(prev->m_next);
+	curr = TM_READ(prev->m_next);
     }
 
     // now insert new_node between prev and curr
@@ -173,13 +176,13 @@ bool List::insert(int val TM_ARG)
 
         // create the new node
         Node* i = (Node*)TM_ALLOC(sizeof(Node));
-        i->m_val = val;
-        i->m_next = const_cast<Node*>(curr);
+        //i->m_val = val;
+        //i->m_next = const_cast<Node*>(curr);
+        TM_WRITE(i->m_val, val);
+        TM_WRITE(i->m_next, const_cast<Node*>(curr));
         TM_WRITE(insert_point->m_next, i);
-	//std::cout << "insert addr " << (uint64_t*)i << " " << (uint64_t*)&(i->m_val) << " " << i->m_val << std::endl;
 	return true;
     }
-    //    printf("insert\n");
     return false;
 }
 
@@ -197,7 +200,6 @@ bool List::lookup(int val TM_ARG) const
             break;
         curr = TM_READ(curr->m_next);
     }
-
     found = ((curr != NULL) && (TM_READ(curr->m_val) == val));
     return found;
 }
@@ -231,29 +233,30 @@ int List::findmin(TM_ARG_ALONE) const
 TM_CALLABLE
 bool List::remove(int val TM_ARG)
 {
-  //  std::cout << "remove" << std::endl;
+  //  std::cout << "remove" << sentinel << std::endl;
       // find the node whose val matches the request
     const Node* prev(sentinel);
     const Node* curr(TM_READ(prev->m_next));
     while (curr != NULL) {
         // if we find the node, disconnect it and end the search
         if (TM_READ(curr->m_val) == val) {
+
             Node* mod_point = const_cast<Node*>(prev);
             TM_WRITE(mod_point->m_next, TM_READ(curr->m_next));
 	    TM_WRITE(((Node*)curr)->m_next, (Node*)NULL); //dummy write
-
             // delete curr...
-            TM_FREE(const_cast<Node*>(curr));
+	    TM_FREE(const_cast<Node*>(curr));
 	    return true;
             //break;
         }
         else if (TM_READ(curr->m_val) > val) {
-            // this means the search failed
+	  //	  TM_WRITE(((Node*)curr)->m_val, ((Node*)curr)->m_val);
+	  // this means the search failed
 	  return false;
 	  // break;
         }
         prev = curr;
-        curr = TM_READ(prev->m_next);
+	curr = TM_READ(prev->m_next);
     }
     //    printf("remove\n");
     return false;

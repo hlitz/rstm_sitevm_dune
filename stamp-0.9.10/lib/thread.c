@@ -86,9 +86,9 @@ static void*             global_argPtr          = NULL;
 static volatile bool_t   global_doShutdown      = FALSE;
 
 
-//
-#undef pthread_mutex_lock(x)
-#undef pthread_mutex_unlock(x)
+
+#undef pthread_mutex_lock
+#undef pthread_mutex_unlock
 #define pthread_mutex_lock(x) hle_spinlock_acquire(x)
 #define pthread_mutex_unlock(x) hle_spinlock_release(x)
 
@@ -123,7 +123,26 @@ threadWait (void* argPtr)
     long threadId = *(long*)argPtr;
 
     THREAD_LOCAL_SET(global_threadId, (long)threadId);
+    while (1) {
+        THREAD_BARRIER(global_barrierPtr, threadId); /* wait for start parallel */
+        if (global_doShutdown) {
+            break;
+        }
+        global_funcPtr(global_argPtr);
+        THREAD_BARRIER(global_barrierPtr, threadId); /* wait for end parallel */
+        if (threadId == 0) {
+            break;
+        }
+    }
+}
+static void
+threadWaitSecondary (void* argPtr)
+{
+    long threadId = *(long*)argPtr;
 
+    THREAD_LOCAL_SET(global_threadId, (long)threadId);
+    //sitevm_enter();
+    //sitevm_open_and_update(sit_segment);
     while (1) {
         THREAD_BARRIER(global_barrierPtr, threadId); /* wait for start parallel */
         if (global_doShutdown) {
@@ -177,7 +196,7 @@ thread_startup (long numThread)
     for (i = 1; i < numThread; i++) {
         THREAD_CREATE(global_threads[i],
                       global_threadAttr,
-                      &threadWait,
+                      &threadWaitSecondary,
                       &global_threadIds[i]);
     }
     /*
@@ -412,11 +431,12 @@ void
 thread_barrier_wait()
 {
 #ifndef SIMULATOR
-  long threadId = thread_getId();
+  //long threadId = thread_getId();
 #endif /* !SIMULATOR */
-  sitevm_commit_and_update(sit_segment);
+  //sitevm_commit_and_update(sit_segment);
+  sitevm_sync();
   THREAD_BARRIER(global_barrierPtr, threadId);
-  sitevm_commit_and_update(sit_segment);
+  //sitevm_commit_and_update(sit_segment);
 }
 
 

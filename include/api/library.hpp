@@ -90,9 +90,9 @@ namespace stm
       // transactional time.  This code suffices, because it gets the time
       // between transactions.  If we need the time for a single transaction,
       // we can run ProfileTM
-      if (tx->end_txn_time)
+      /*     if (tx->end_txn_time)
           tx->total_nontxn_time += (tick() - tx->end_txn_time);
-
+      */
       // now call the per-algorithm begin function
       TxThread::tmbegin(tx);
 
@@ -312,8 +312,10 @@ namespace stm
 #define TM_THREAD_INIT       stm::thread_init
 #define TM_THREAD_SHUTDOWN() stm::thread_shutdown()
 #define TM_SYS_SHUTDOWN      stm::sys_shutdown
-#define TM_ALLOC             stm::tx_alloc
-#define TM_FREE              stm::tx_free
+#define TM_ALLOC             sitemalloc
+//stm::tx_alloc
+#define TM_FREE              sitefree 
+//stm::tx_free
 #define TM_SET_POLICY(P)     stm::set_policy(P)
 #define TM_BECOME_IRREVOC()  stm::become_irrevoc()
 #define TM_GET_ALGNAME()     stm::get_algname()

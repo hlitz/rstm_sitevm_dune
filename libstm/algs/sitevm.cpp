@@ -24,11 +24,24 @@
 using namespace std;
 using stm::TxThread;
 
+/*
+struct sitevm_word_diff2{
+  void * addr;
+  uint64_t value;
+
+  sitevm_word_diff(void* _addr, uint64_t _value):addr(_addr), value(_value){};
+  };*/
+
+
+//globals
+//thread_local std::map<void*, std::vector <sitevm_word_diff> > writeset;
+//thread_local std::map < uint64_t, std::unordered_map < uint64_t, undo_redo > > writeset;
+
+
 sitevm_seg_t* sit_segment;
 //sit_seg* sit_segment_promo;
 //sit_malloc* sit_segment_malloc;
-sitevm_malloc* sitevm_segment_malloc;
-
+//sitevm::sitevm_malloc* sitevm_segment_malloc;
 
 //Some debugging facilities
 const bool DEBUG_BACKTRACE = false;//true;
@@ -112,6 +125,7 @@ inline uint64_t rdtsc()
     //std::cout << *(uint64_t*)promo_offset << std::endl;
 */  
 }
+
   
   /**
    *  SITE_VM begin:
@@ -119,10 +133,11 @@ inline uint64_t rdtsc()
   bool
   SITE_VM::begin(TxThread* tx)
   {
+    //writeset.clear();
     //Now commit and update, asserting false on error
     //uint64_t before = rdtsc();
-    int result = sitevm_commit_and_update(sit_segment, NULL, SITEVM_CLOBBER);
-    assert(result == 0);
+    sitevm::sitevm_txn_begin();//sitevm_commit_and_update(sit_segment, NULL, SITEVM_CLOBBER);
+    //assert(result == 0);
     //printf("%ld\n", rdtsc() - before);
     //printf("Clobbered in sitevm_begin\n");
 
@@ -162,12 +177,14 @@ inline uint64_t rdtsc()
     //std::cout << "--------------------------------site commit in sitevm" << std::endl;
     //sit_segment->commit();
     //sitevm_commit(sit_segment);
-    sitevm_commit_and_update(sit_segment);
+    //sitevm_commit_and_update_diff(sit_segment, &writeset, NULL, 0);
   }
 
   /**
    *  SITE_VM commit (read-only):
    */
+  //static bool dumped = false;
+  //static int ccs =0;
   void
   SITE_VM::commit_ro(TxThread* tx)
   {
@@ -181,7 +198,7 @@ inline uint64_t rdtsc()
     //std::cout << "Commit RO TRX "<< sit_thread::sit_gettid() << endl;
     
     //int result = sit_segment->commit();
-    int result = sitevm_commit_and_update(sit_segment);
+    int result = sitevm::sitevm_txn_commit();//sitevm_commit_and_update_diff(sit_segment, &writeset);
     //    int result = sit_segment->commit();
     //   std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
      if(result ==0){
@@ -217,8 +234,9 @@ inline uint64_t rdtsc()
       }*/
     //int result = sit_segment->commit();
     //std::cout << "c and u tid: "<< tx->id << std::endl;
-    int result = sitevm_commit_and_update(sit_segment);
-    //std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
+    //int result = sitevm_commit_and_update_diff(sit_segment, &writeset);
+    int result = sitevm::sitevm_txn_commit();//sitevm_commit_and_update_diff(sit_segment, &writeset);
+  //std::cout << "Committing TRX " << sit_thread::sit_gettid() << " result " << result << std::endl;
     if(result ==0){
       //std::cout << "comit ro" << sit_thread::sit_gettid()<< std::endl;
       //tx->allocator.onTxCommit();
@@ -267,10 +285,10 @@ inline uint64_t rdtsc()
   SITE_VM::read_ro(STM_READ_SIG(tx,addr,))
   {
     //promo_inc((char*)addr);
-    if((uint64_t)addr<0x10000){
+    /*if((uint64_t)addr<0x10000){
       cout << "ADDR: " << addr << endl;
       print_backtrace_si();
-  }
+      }*/
     //    cout << "read ro " << sit_thread::sit_gettid() << endl;
     return *addr;
     /*
@@ -330,12 +348,12 @@ inline uint64_t rdtsc()
   void* __attribute__ ((noinline))
   SITE_VM::read_rw(STM_READ_SIG(tx,addr,mask))
   {
-
-    if((uint64_t)addr<0x10000){
-      cout << "ADDR: " << addr << endl;
+    /*  
+    if((uint64_t)addr < (uint64_t)sit_segment->begin || (uint64_t)addr > (uint64_t)sit_segment->begin + sit_segment->size){
+      cout << "TXNal Read to non Sitevm segement: " << addr << endl;
       print_backtrace_si();
-    }
-
+      }
+*/
     return *addr;
     /*
     uint64_t data;
@@ -372,10 +390,10 @@ inline uint64_t rdtsc()
   void
   SITE_VM::write_ro(STM_WRITE_SIG(tx,addr,val,mask))
   {
-    if((uint64_t)addr<0x10000){
-      cout << "Write ADDR: " << addr << endl;
+    /*    if((uint64_t)addr < (uint64_t)sit_segment->begin || (uint64_t)addr > (uint64_t)sit_segment->begin + sit_segment->size){
+      cout << "TXNal Write to non Sitevm segement: " << addr << endl;
       print_backtrace_si();
-    }
+      }*/
     //cout << "write ro " << endl;
     /*
     uint64_t codeline = 0;
@@ -389,8 +407,29 @@ inline uint64_t rdtsc()
       tx->tmabort(tx);
       }*/
     //promo_inc((char*)addr);
-    OnFirstWrite(tx, read_rw, read_rw_promo, write_rw, commit_rw);
-    *addr = val;
+    //OnFirstWrite(tx, read_rw, read_rw_promo, write_rw, commit_rw);
+    /* uint64_t addr_cl = ((uint64_t)addr)&~0xFFF;
+    auto find = writeset.find((void*)addr_cl);
+    if(find==writeset.end()){
+      std::vector<sitevm_word_diff> vec;
+      vec.push_back(sitevm_word_diff((void*)addr, (uint64_t)val));
+      writeset.insert(pair < void*, std::vector <sitevm_word_diff > >((void*)addr_cl, vec));
+    }
+    else{
+      bool found = false;
+      for(auto it = find->second.begin(); it!= find->second.end(); it++){
+	if(it->addr == addr){
+	  it->value = (uint64_t)val;
+	  found = true;
+	  break;
+	}
+      }
+      if(!found)
+	find->second.push_back(sitevm_word_diff((void*)addr,(uint64_t)val));
+	}*/
+    sitevm::sitevm_txn_write((uint64_t*)addr, (uint64_t)val);
+    //*addr = val;
+    //assert(0);
   }
     
   /**
@@ -398,13 +437,11 @@ inline uint64_t rdtsc()
    */
   void
   SITE_VM::write_rw(STM_WRITE_SIG(tx,addr,val,mask))
-  {   
-    if((uint64_t)addr<0x10000){
-      cout << "Write ADDR: " << addr << endl;
+  {   /*
+    if((uint64_t)addr < (uint64_t)sit_segment->begin || (uint64_t)addr > (uint64_t)sit_segment->begin + sit_segment->size){
+      cout << "TXNal Write to non Sitevm segement: " << addr << endl;
       print_backtrace_si();
-    }
-    //    cout << "write rw " << sit_thread::sit_gettid() << " address " << addr << " data " << val << endl;
-    //cout << "write rw " << endl;
+      }*/
 
     /*    uint64_t codeline = 0;
     bool res = TMaddwset((uint64_t)addr, (uint64_t)val, codeline);
@@ -417,7 +454,39 @@ inline uint64_t rdtsc()
      tx->tmabort(tx);
      }*/
     //promo_inc((char*)addr);
-    *addr = val;
+    /*    uint64_t addr_cl = ((uint64_t)addr)&~0xFFF;
+    auto find = writeset.find((void*)addr_cl);
+    if(find==writeset.end()){
+      std::vector<sitevm_word_diff> vec;
+      vec.push_back(sitevm_word_diff((void*)addr, (uint64_t)val));
+      writeset.insert(pair < void*, std::vector <sitevm_word_diff > >((void*)addr_cl, vec));
+    }
+    else{
+      bool found = false;
+      for(auto it = find->second.begin(); it!= find->second.end(); it++){
+	if(it->addr == addr){
+	  it->value = (uint64_t)val;
+	  found = true;
+	  break;
+	}
+      }
+      if(!found)
+	find->second.push_back(sitevm_word_diff((void*)addr,(uint64_t)val));
+	}*/
+
+
+
+    /*
+    if(find==writeset.end()){
+      std::vector<sitevm_word_diff> vec;
+      vec.push_back(sitevm_word_diff((void*)addr, (uint64_t)val));
+      writeset.insert(pair < void*, std::vector <sitevm_word_diff > >((void*)addr_cl, vec));
+    }
+    else{
+      find->second.push_back(sitevm_word_diff((void*)addr,(uint64_t)val));
+      }*/
+    sitevm::sitevm_txn_write((uint64_t*) addr, (uint64_t)val);
+    //*addr = val;
   }
 
   /**
@@ -457,7 +526,7 @@ inline uint64_t rdtsc()
   {
     std::cout << "Switch to SITE_VM"  << std::endl;
     //sit_segment = new sit_seg(SIT_SEG_SIZE, "segment 1");
-    sit_segment = sitevm_seg_create(NULL, SITEVM_SEG_SIZE);
+    sit_segment = sitevm::sitevm_seg_create(NULL, SITEVM_SEG_SIZE);
     sitemallocinit(sit_segment);
     
     /*for(int i =0; i< MAX_SITE_THREADS; i++){
@@ -484,7 +553,7 @@ inline uint64_t rdtsc()
       } */
     //sit_segment->clear_promoted_reads();
     
-    std::cout << "Switched to SITE-VM" << std::endl;
+    std::cout << "Switched to SITE-VM" << sit_segment->begin << std::endl;
     return;
 
  unsigned long FAULTS = 1000;
@@ -499,7 +568,7 @@ inline uint64_t rdtsc()
 
       //sitevm_update(sit_segment);
       uend = rdtsc();
-      for(int i=0; i<FAULTS; i++){
+      for(uint i=0; i<FAULTS; i++){
 	rbegin = rdtsc();
 	//(*(uint64_t*)(sit_segment->base()+i*4096))++;
 	(*(vec+i*4096))=7;

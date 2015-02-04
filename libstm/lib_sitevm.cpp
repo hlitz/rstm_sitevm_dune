@@ -34,12 +34,12 @@ void print_backtrace(){
 //#define INSERT_MALLOC asm("mov $666, %rcx\n\t" " movl $1027, %ecx\n\t"  "xchg %rcx, %rcx");
 void sitemallocinit(sitevm_seg_t* seg){
   //  printf("lib_sitevm.cpp call malloc init\n");
-  sitevm_malloc::init_sitevm_malloc(seg);
+  //sitevm_malloc::init_sitevm_malloc(seg);
 }
 
 void* sitemalloc(size_t size){
   void* address;
-  address = sitevm_malloc::smalloc(size);
+  address = sitevm::smalloc(size);
   /*if((uint64_t)address<0x30000000000 || (uint64_t)address>0x30040000000){
     static  int allocs = 0;
     printf("LIBSITE MALLOC %p tid %i alloc nur %i\n",address, (int)pthread_self(), allocs++);
@@ -51,7 +51,7 @@ void* sitemalloc(size_t size){
 }
 
 void* sitecalloc(size_t num, size_t size){
-  void * address = sitevm_malloc::scalloc(num, size);
+  void * address = sitevm::scalloc(num, size);
   /*if((uint64_t)address<0x30000000000 || (uint64_t)address>0x30040000000){
     static  int allocs = 0;
     printf("LIBSITE MALLOC %p tid %i alloc nur %i\n",address, (int)pthread_self(), allocs++);
@@ -73,7 +73,7 @@ void sitefree(void * ptr){
   }
   */
   //printf("LIBSITE FREE %p tid %i\n", ptr, pthread_self());
-  sitevm_malloc::sfree(ptr);
+  sitevm::sfree(ptr);
   //printf("APP FREE %p", ptr);
   //free(ptr);
 }

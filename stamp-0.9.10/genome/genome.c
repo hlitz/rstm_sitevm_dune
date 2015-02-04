@@ -207,7 +207,7 @@ MAIN (argc,argv)
     P_MEMORY_STARTUP(numThread);
     TM_THREAD_ENTER();
 
-    //    TM_BEGIN();
+    TM_BEGIN();
     randomPtr= random_alloc();
     assert(randomPtr != NULL);
     random_seed(randomPtr, 0);
@@ -222,7 +222,7 @@ MAIN (argc,argv)
     segments_create(segmentsPtr, genePtr, randomPtr);
     sequencerPtr = sequencer_alloc(geneLength, segmentLength, segmentsPtr);
     assert(sequencerPtr != NULL);
-    //TM_END();
+    TM_END();
     thread_startup(numThread);
     puts("done.");
     printf("Gene length     = %li\n", genePtr->length);
@@ -254,7 +254,8 @@ MAIN (argc,argv)
     puts("done.");
     printf("Time = %lf\n", TIMER_DIFF_SECONDS(start, stop));
     fflush(stdout);
-
+    TM_BEGIN();
+    TM_END();
     /* Check result */
     {
       char* sequence;

@@ -144,8 +144,6 @@ barrier(uint32_t which)
     initialized = true;
   }*/
     static volatile uint32_t barriers[16] = {0};
-
-
     CFENCE;
     fai32(&barriers[which]);
     while (barriers[which] != CFG.threads) { }
