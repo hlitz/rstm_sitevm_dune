@@ -20,7 +20,7 @@
 #include <common/locks.hpp>
 #include "bmconfig.hpp"
 #include "sitevm/sitevm.h"
-#include "sitevm/sitevm_malloc.h"
+//#include "sitevm/sitevm_malloc.h"
 //#include "sit_thread.h"
 
 using std::string;
