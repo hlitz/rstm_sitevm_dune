@@ -62,6 +62,31 @@ inline uint64_t rdtsc3()
     return (uint64_t)hi << 32 | lo;
 }
 
+unsigned int
+my_rand (unsigned int *seed)
+{
+  unsigned int next = *seed;
+  unsigned int result;
+  /*
+  next *= 1103515245;
+  next += 12345;
+  result = (unsigned int) (next / 65536) % 2048;
+  
+  next *= 1103515245;
+  next += 12345;
+  result <<= 10;
+  result ^= (unsigned int) (next / 65536) % 1024;
+
+  next *= 1103515245;
+  next += 12345;
+  result <<= 10;
+  result ^= (unsigned int) (next / 65536) % 1024;
+  */
+  *seed = next;
+
+  return rdtsc3();// result;
+}
+ 
 
 /**
  *  Step 3:
@@ -75,6 +100,8 @@ int64_t elems [32];
 int ielems [32];
 int relems [32];
 int startelems = 0;
+const int TS_MAX = 100;
+int ts[32][TS_MAX];
 
 /*** Initialize the counter */
 void bench_init()
@@ -82,14 +109,17 @@ void bench_init()
   //    SET = new List();
   SET = (List*)sitemalloc(sizeof(List));
  
- 
   new (SET) List();
   TM_BEGIN(atomic){//_FAST_INITIALIZATION();
 
   for(int i=0;i<32;i++){
+    unsigned int seed = 12345*i;
     elems[i] = 0;
     ielems[i] = 0;
     relems[i] = 0;
+    for(int e =0; e<TS_MAX; e++){
+      ts[i][e] = my_rand(&seed);
+    }
   }
   //  std::cout << "malloced " << std::endl;
 
@@ -113,18 +143,22 @@ void bench_update(){
   }TM_END;
 }
  
- 
 /*** Run a bunch of increment transactions */
 int bench_test(uintptr_t id, uint32_t* seed)
 {
   //std::cout << "id " << id << " " << std::endl;
   //TM_BEGIN(atomic){
   //  long tid = id;
-
-    for(uint o=0; o<CFG.ops; o++){
-      uint32_t val = rand_r(seed) % CFG.elements;
-      uint32_t act = rand_r(seed) % 100;
-      //printf("insp %i\n", CFG.inspct);
+  static int count =0;
+  if(count!=TS_MAX)
+    count++;
+  else
+    count = 0;
+  for(uint o=0; o<CFG.ops; o++){
+    uint32_t val = ts[id][count] /*my_rand(seed)*/ % CFG.elements;
+    uint32_t act = ts[id][TS_MAX-count] /*my_rand(seed)*/ % 100;
+       //printf("insp %i\n", CFG.inspct);
+    //std::cout << " val " << val << " act " << act <<  std::endl;
       bool res = false;
       if (act < CFG.lookpct) {
 	//uint64_t begin = rdtsc2();

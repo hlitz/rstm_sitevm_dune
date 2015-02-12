@@ -9,7 +9,7 @@
  */
 
 #include <utility>
-#include <cmath>
+//#include <cmath>
 #include <limits.h>
 #include "initializers.hpp" // init_pol_cbr
 #include "policies.hpp"     // init_adapt_pol

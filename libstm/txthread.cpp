@@ -184,7 +184,7 @@ namespace stm
   /*** the init factory */
   void TxThread::thread_init()
   {
-        printf("call_thread_init\n ");
+
       // multiple inits from one thread do not cause trouble
       if (Self) return;
 
@@ -221,7 +221,10 @@ namespace stm
       static volatile unsigned int mtx = 0;
       
       //sit_thread::sit_thread_shutdown();
-    sitevm::sitevm_exit();
+    
+      sitevm::sitevm_exit();
+      sitevm::sitevm_shutdown();
+
       while (!bcas32(&mtx, 0u, 1u)) { }
 
       uint64_t nontxn_count = 0;                // time outside of txns

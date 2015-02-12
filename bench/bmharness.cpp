@@ -119,9 +119,11 @@ parseargs(int argc, char** argv)
 void
 nontxnwork()
 {
-    if (CFG.nops_after_tx)
-        for (uint32_t i = 0; i < CFG.nops_after_tx; i++)
+  if (CFG.nops_after_tx){
+    std::cout << "alarm!! "<<std::endl;
+      for (uint32_t i = 0; i < CFG.nops_after_tx; i++)
             spin64();
+  }
 }
 
 /*** Signal handler to end a test */
@@ -233,9 +235,6 @@ run_wrapper(void* i)
 {
   
     int64_t inserts = run((uintptr_t)i);
-    //bench_verify();
-    printf("shutting down thread\n");
-    //TM_THREAD_SHUTDOWN();
     return (void*)inserts;// NULL;
 }
 }
